@@ -64,7 +64,7 @@ services:
       # bukan nama service di dalam jaringan Docker.
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
     ports:
-      - "${FRONTEND_PORT:-4001}:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     volumes:
       - ./frontend:/app
       # node_modules disimpan di volume sendiri supaya tidak tertimpa mount source.
