@@ -63,6 +63,10 @@ services:
       # Dibaca oleh browser, jadi alamatnya dari sudut pandang komputer,
       # bukan nama service di dalam jaringan Docker.
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      # Isi kalau frontend dibuka lewat IP/domain, bukan localhost. Tanpa ini
+      # Next memblokir permintaan cross-origin ke sumber daya dev (HMR).
+      # Contoh: ALLOWED_DEV_ORIGINS=72.61.140.54
+      ALLOWED_DEV_ORIGINS: ${ALLOWED_DEV_ORIGINS:-}
     ports:
       - "${FRONTEND_PORT:-4001}:3000"
     volumes:
