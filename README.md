@@ -239,3 +239,4 @@ belum ada.
 - **Validasi ditulis sekali** sebagai schema Zod, lalu dipakai form lewat react-hook-form.
 
 Penjelasan lebih panjang ada di README masing-masing folder.
+# STK-Technical-Test-Fullstack-Web
