@@ -23,8 +23,6 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={getQueryClient()}>
       {children}
-      {/* Aplikasi ini tidak punya mode gelap, jadi notifikasi dikunci terang
-          supaya tidak ikut gelap saat OS user pakai dark mode. */}
       <Toaster position="top-right" theme="light" />
     </QueryClientProvider>
   );
