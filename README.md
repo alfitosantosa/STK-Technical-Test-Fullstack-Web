@@ -95,6 +95,13 @@ BACKEND_PORT=4001 FRONTEND_PORT=3100 NEXT_PUBLIC_API_URL=http://localhost:4001 d
 > Perintah di README ini memakai `docker compose` (plugin). Kalau CLI-mu belum
 > mengenalinya, pakai `docker-compose` — perintahnya sama.
 
+> **Hot reload di macOS.** Docker Desktop sudah meneruskan perubahan berkas dari
+> komputer ke container. Kalau memakai **colima**, set `mountInotify: true` di
+> `~/.colima/default/colima.yaml` lalu jalankan ulang colima; tanpanya perubahan
+> berkas tidak terdeteksi di dalam container — hot reload frontend tidak jalan,
+> sedangkan backend tetap jalan karena air memeriksa berkas secara berkala
+> (`poll = true` di `backend/.air.toml`).
+
 ```bash
 docker compose logs -f backend    # lihat log satu service
 docker compose down               # hentikan (data database tetap ada)
