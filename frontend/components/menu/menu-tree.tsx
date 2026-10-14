@@ -10,7 +10,11 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { ChevronDownIcon, ChevronRightIcon, GripVerticalIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  GripVerticalIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { useMenuMutations } from "@/lib/queries";
@@ -128,7 +132,12 @@ function MenuTreeRow({ node, depth }: { node: MenuNode; depth: number }) {
   const { setNodeRef: setIntoRef, isOver: isOverInto } = useDroppable({
     id: `into:${node.id}`,
   });
-  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({
     id: node.id,
   });
 
@@ -137,7 +146,7 @@ function MenuTreeRow({ node, depth }: { node: MenuNode; depth: number }) {
       <div
         ref={setBeforeRef}
         className={cn(
-          "h-1.5 rounded-full transition-colors",
+          "h-1.5 rounded-xl transition-colors",
           isOverBefore ? "bg-primary" : "bg-transparent",
         )}
       />
@@ -146,7 +155,7 @@ function MenuTreeRow({ node, depth }: { node: MenuNode; depth: number }) {
         ref={setIntoRef}
         style={{ paddingLeft: depth * 18 + 4 }}
         className={cn(
-          "group/row flex items-center gap-1 rounded-md pr-2 transition-colors",
+          "group/row flex items-center gap-1 rounded-xl pr-2 transition-colors",
           isSelected && "bg-primary/10",
           isOverInto && !isSelected && "ring-1 ring-primary/40",
           isDragging && "opacity-40",
@@ -156,7 +165,7 @@ function MenuTreeRow({ node, depth }: { node: MenuNode; depth: number }) {
           ref={setDragRef}
           type="button"
           aria-label={`Pindahkan ${node.name}`}
-          className="cursor-grab touch-none rounded p-1 text-muted-foreground/40 transition-colors group-hover/row:text-muted-foreground focus-visible:text-muted-foreground"
+          className="cursor-grab touch-none rounded-xl p-1 text-muted-foreground/40 transition-colors group-hover/row:text-muted-foreground focus-visible:text-muted-foreground"
           {...listeners}
           {...attributes}
         >
@@ -168,7 +177,7 @@ function MenuTreeRow({ node, depth }: { node: MenuNode; depth: number }) {
           onClick={() => toggleExpanded(node.id)}
           aria-label={isExpanded ? `Tutup ${node.name}` : `Buka ${node.name}`}
           className={cn(
-            "rounded p-1 text-muted-foreground transition-colors hover:text-foreground",
+            "rounded-xl p-1 text-muted-foreground transition-colors hover:text-foreground",
             !hasChildren && "invisible",
           )}
         >
@@ -193,7 +202,7 @@ function MenuTreeRow({ node, depth }: { node: MenuNode; depth: number }) {
             {node.name}
           </span>
           {isSelected && (
-            <span className="size-3.5 shrink-0 rounded-full bg-primary ring-2 ring-primary/25" />
+            <span className="size-3.5 shrink-0 rounded-xl bg-primary ring-2 ring-primary/25" />
           )}
         </button>
       </div>

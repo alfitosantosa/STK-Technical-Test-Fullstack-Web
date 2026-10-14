@@ -110,3 +110,26 @@ export function isDescendant(root: MenuNode, candidateId: MenuId): boolean {
     (child) => child.id === candidateId || isDescendant(child, candidateId),
   );
 }
+
+// menuPath mengembalikan jalur dari menu teratas sampai menu dengan id tersebut
+// (akar dulu, menu itu sendiri di akhir).
+//
+// Dipakai breadcrumb untuk menunjukkan posisi menu: hasilnya kosong kalau id
+// tersebut tidak ada di tree.
+export function menuPath(nodes: MenuNode[], id: MenuId): MenuNode[] {
+  const node = findNode(nodes, id);
+
+  if (!node) {
+    return [];
+  }
+
+  const path = [node];
+  let parent = findParent(nodes, id);
+
+  while (parent) {
+    path.unshift(parent);
+    parent = findParent(nodes, parent.id);
+  }
+
+  return path;
+}

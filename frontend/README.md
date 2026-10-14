@@ -55,6 +55,7 @@ frontend/
 │   └── types.ts              tipe yang dipakai bersama
 ├── stores/menu-store.ts      state UI (node terpilih, node terbuka, pencarian, mode form)
 ├── hooks/use-mobile.ts       deteksi layar kecil
+├── hooks/use-hydrated.ts     penanda komponen sudah selesai di-hydrate
 └── vitest.config.mts         konfigurasi unit test
 ```
 

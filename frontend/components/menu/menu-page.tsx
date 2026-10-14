@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 
 import { MenuDetailForm } from "@/components/menu/menu-detail-form";
 import { MenuToolbar } from "@/components/menu/menu-toolbar";
@@ -14,7 +14,10 @@ import { useMenuStore } from "@/stores/menu-store";
 // MenuPage menyusun halaman pengelolaan menu:
 // toolbar di atas, tree di kiri, panel detail di kanan
 // (di layar kecil panel detail menempel di bawah).
-export function MenuPage() {
+//
+// `heading` hanya dipakai halaman /menus/<id> untuk menaruh breadcrumb sebagai
+// judul; halaman "/" memakai judul bawaan dari MenuToolbar.
+export function MenuPage({ heading }: { heading?: ReactNode }) {
   const { data: roots, isPending, error, refetch } = useMenuTree();
   const rootId = useMenuStore((state) => state.rootId);
   const setRootId = useMenuStore((state) => state.setRootId);
@@ -24,7 +27,8 @@ export function MenuPage() {
   const showDetail = useMenuStore((state) => state.showDetail);
 
   const tree = useMemo(() => roots ?? [], [roots]);
-  const visibleRoot = tree.find((root) => root.id === rootId) ?? tree[0] ?? null;
+  const visibleRoot =
+    tree.find((root) => root.id === rootId) ?? tree[0] ?? null;
 
   // Menu teratas pertama dipilih otomatis supaya dropdown dan tree tidak kosong.
   useEffect(() => {
@@ -54,13 +58,13 @@ export function MenuPage() {
       {/* min-w-0 wajib pada section: tanpa itu baris toolbar di dalamnya
           menentukan lebar min-content dan mendorong panel detail keluar layar. */}
       <section className="min-w-0 flex-1 p-4 lg:p-6">
-        <MenuToolbar roots={tree} visibleRoot={visibleRoot} />
+        <MenuToolbar roots={tree} visibleRoot={visibleRoot} heading={heading} />
 
         <div className="mt-6">
           {isPending && <TreeSkeleton />}
 
           {error && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
               <p className="font-medium text-destructive">Gagal memuat menu</p>
               <p className="mt-1 text-muted-foreground">{error.message}</p>
               <Button
@@ -100,12 +104,15 @@ export function MenuPage() {
 
 function TreeSkeleton() {
   return (
-    <div className="flex flex-col gap-2">
-      {[0, 1, 2, 3, 4].map((index) => (
+    <div className="flex flex-col gap-2 rounded-lg">
+      {[0, 1, 2, 3, 4, 5].map((index) => (
         <Skeleton
           key={index}
-          className="h-8"
-          style={{ marginLeft: (index % 3) * 18, width: `${70 - (index % 3) * 10}%` }}
+          className="h-8 rounded-lg"
+          style={{
+            marginLeft: (index % 3) * 18,
+            width: `${70 - (index % 3) * 10}%`,
+          }}
         />
       ))}
     </div>

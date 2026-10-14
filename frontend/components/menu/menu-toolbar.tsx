@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
-import { Grid2x2Icon, PlusIcon, SearchIcon } from "lucide-react";
+import { PlusIcon, SearchIcon } from "lucide-react";
 
 import { AddMenuDialog } from "@/components/menu/add-menu-dialog";
 import { Button } from "@/components/ui/button";
@@ -24,11 +24,14 @@ type MenuToolbarProps = {
   roots: MenuNode[];
   // Menu teratas yang sedang ditampilkan.
   visibleRoot: MenuNode | null;
+  // Pengganti judul halaman. Dipakai /menus/<id> untuk menaruh breadcrumb di
+  // posisi judul; halaman "/" membiarkannya kosong dan memakai judul bawaan.
+  heading?: ReactNode;
 };
 
 // MenuToolbar berisi judul halaman, pemilih menu teratas, tombol
 // Expand/Collapse All, pencarian, dan tombol tambah menu.
-export function MenuToolbar({ roots, visibleRoot }: MenuToolbarProps) {
+export function MenuToolbar({ roots, visibleRoot, heading }: MenuToolbarProps) {
   const rootId = useMenuStore((state) => state.rootId);
   const setRootId = useMenuStore((state) => state.setRootId);
   const setExpanded = useMenuStore((state) => state.setExpanded);
@@ -60,15 +63,14 @@ export function MenuToolbar({ roots, visibleRoot }: MenuToolbarProps) {
           htmlFor="toggle-detail"
           className="text-sm text-muted-foreground select-none"
         >
-          Menus
+          Menus Detail Toggle
         </label>
       </div>
 
-      <div className="flex items-center gap-2.5">
-        <span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground">
-          <Grid2x2Icon className="size-4" />
-        </span>
-        <h1 className="font-heading text-2xl font-bold text-primary">Menus</h1>
+      <div className="flex min-w-0 items-center">
+        {heading ?? (
+          <h1 className="text-2xl font-bold text-primary">Menus Page</h1>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
@@ -101,7 +103,7 @@ export function MenuToolbar({ roots, visibleRoot }: MenuToolbarProps) {
           <Button
             type="button"
             size="sm"
-            className="rounded-full bg-neutral-900 text-white hover:bg-neutral-800"
+            className="bg-neutral-900 text-white hover:bg-neutral-800"
             onClick={() =>
               setExpanded(visibleRoot ? collectIds([visibleRoot], true) : [])
             }
@@ -111,7 +113,7 @@ export function MenuToolbar({ roots, visibleRoot }: MenuToolbarProps) {
           <Button
             type="button"
             size="sm"
-            className="rounded-full bg-neutral-900 text-white hover:bg-neutral-800"
+            className="bg-neutral-900 text-white hover:bg-neutral-800"
             onClick={() => setExpanded([])}
           >
             Collapse All
@@ -125,7 +127,7 @@ export function MenuToolbar({ roots, visibleRoot }: MenuToolbarProps) {
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="Cari menu..."
             aria-label="Cari menu"
-            className="rounded-md border border-input bg-muted/40 pl-9"
+            className="border border-input bg-muted/40 pl-9"
           />
         </div>
 

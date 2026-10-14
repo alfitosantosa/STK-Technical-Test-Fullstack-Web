@@ -126,7 +126,7 @@ function AddMenuForm({ defaultParentId, onDone }: AddMenuFormProps) {
         >
           <SelectTrigger
             id="new-menu-parent"
-            className="w-full rounded-md border border-input px-3"
+            className="w-full border border-input px-3"
           >
             <SelectValue />
           </SelectTrigger>
@@ -147,7 +147,7 @@ function AddMenuForm({ defaultParentId, onDone }: AddMenuFormProps) {
         <Input
           id="new-menu-name"
           aria-invalid={Boolean(errors.name)}
-          className="rounded-md border border-input px-3"
+          className="border border-input px-3"
           {...form.register("name")}
         />
         <FieldError errors={[errors.name]} />
@@ -159,7 +159,7 @@ function AddMenuForm({ defaultParentId, onDone }: AddMenuFormProps) {
           id="new-menu-url"
           placeholder="/laporan/penjualan"
           aria-invalid={Boolean(errors.url)}
-          className="rounded-md border border-input px-3"
+          className="border border-input px-3"
           {...form.register("url")}
         />
         <FieldError errors={[errors.url]} />
@@ -170,7 +170,7 @@ function AddMenuForm({ defaultParentId, onDone }: AddMenuFormProps) {
           Cancel
         </Button>
         <Button type="submit" disabled={create.isPending}>
-          {create.isPending ? "Menyimpan..." : "Save"}
+          {create.isPending ? "Menyimpan..." : "SIMPAN"}
         </Button>
       </DialogFooter>
     </form>

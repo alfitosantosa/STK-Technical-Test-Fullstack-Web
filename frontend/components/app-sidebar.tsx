@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {
   BoxesIcon,
-  ChevronsLeftIcon,
   CircleIcon,
   CodeIcon,
   LayoutGridIcon,
@@ -30,7 +29,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { useMenuTree } from "@/lib/queries";
 import type { MenuNode } from "@/lib/types";
@@ -62,7 +60,6 @@ function ikonMenu(nama: string): LucideIcon {
 export function AppSidebar() {
   const { data: roots, isPending, error } = useMenuTree();
   const { selectedId, select, setRootId } = useMenuStore();
-  const { toggleSidebar } = useSidebar();
 
   // Memilih menu dari sidebar sekaligus menentukan menu teratas yang
   // ditampilkan di halaman, supaya menu yang dipilih pasti terlihat.
@@ -74,21 +71,11 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-3">
-          <div className="grid size-8 shrink-0 place-items-center rounded-md bg-sidebar-accent text-sidebar-accent-foreground">
+        <div className="flex items-center gap-2 py-3">
+          <div className="grid size-8 shrink-0 place-items-center rounded-xl bg-sidebar-accent text-sidebar-accent-foreground">
             <LayoutGridIcon className="size-4" />
           </div>
-          <span className="font-heading text-sm font-semibold tracking-wider group-data-[collapsible=icon]:hidden">
-            MAKALUX
-          </span>
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            aria-label="Lipat sidebar"
-            className="ml-auto rounded p-1 text-sidebar-foreground/70 transition-colors hover:text-sidebar-foreground group-data-[collapsible=icon]:hidden"
-          >
-            <ChevronsLeftIcon className="size-4" />
-          </button>
+          <span className="text-sm font-semibold tracking-wider group-data-[collapsible=icon]:hidden"></span>
         </div>
       </SidebarHeader>
 
@@ -98,7 +85,11 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive tooltip="Menus" render={<Link href="/" />}>
+                <SidebarMenuButton
+                  isActive
+                  tooltip="Menus"
+                  render={<Link href="/" />}
+                >
                   <ListTreeIcon />
                   <span>Menus</span>
                 </SidebarMenuButton>

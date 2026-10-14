@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { useHydrated } from "@/hooks/use-hydrated";
 import { menuApi } from "@/lib/api";
 import type { MenuId, MenuPayload, MovePayload } from "@/lib/types";
 
@@ -17,13 +18,34 @@ export const menuKeys = {
 // Sidebar dan halaman memakai hook yang sama, jadi requestnya otomatis
 // diambil dari cache yang sama (React Query yang mengurus).
 export function useMenuTree() {
-  return useQuery({
+  const hydrated = useHydrated();
+
+  const query = useQuery({
     queryKey: menuKeys.tree(),
     queryFn: menuApi.tree,
     // Data ini hanya berubah lewat aplikasi ini sendiri, jadi 30 detik
     // cukup untuk menahan refetch yang tidak perlu.
     staleTime: 30_000,
   });
+
+  // Server tidak punya cache React Query, jadi HTML dari server selalu berisi
+  // keadaan "sedang memuat". Render pertama di klien harus sama persis; kalau
+  // cache sudah terisi sebelum hydration selesai (misalnya query ini dipakai
+  // komponen lain yang di-hydrate lebih dulu), hasilnya berbeda dan React
+  // membuang HTML server. Data baru dipakai setelah hydration selesai.
+  if (hydrated) {
+    return query;
+  }
+
+  return {
+    ...query,
+    data: undefined,
+    error: null,
+    status: "pending" as const,
+    isPending: true,
+    isSuccess: false,
+    isError: false,
+  };
 }
 
 // useMenuMutations mengumpulkan semua aksi yang mengubah data.

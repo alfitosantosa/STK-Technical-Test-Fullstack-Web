@@ -24,7 +24,8 @@ export function MenuDetailForm() {
   const selected = findNode(tree, selectedId);
   const parent = selected ? findParent(tree, selected.id) : null;
   const depthOfSelected = selected
-    ? (flattenTree(tree).find((entry) => entry.node.id === selected.id)?.depth ?? 0)
+    ? (flattenTree(tree).find((entry) => entry.node.id === selected.id)
+        ?.depth ?? 0)
     : 0;
 
   const form = useForm<MenuFormValues>({
@@ -58,14 +59,15 @@ export function MenuDetailForm() {
   if (!selected) {
     return (
       <p className="text-sm text-muted-foreground">
-        Pilih salah satu menu di sebelah kiri untuk melihat dan mengubah datanya.
+        Pilih salah satu menu di sebelah kiri untuk melihat dan mengubah
+        datanya.
       </p>
     );
   }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
-      <h2 className="font-heading text-lg font-semibold">Detail Menu</h2>
+      <h2 className="text-lg font-semibold">Detail Menu</h2>
 
       {/* Menu ID ditampilkan sebagai teks abu-abu, mengikuti mockup:
           nilainya dibuat backend dan tidak pernah diubah dari sini. */}
@@ -80,7 +82,7 @@ export function MenuDetailForm() {
           id="menu-depth"
           value={depthOfSelected}
           readOnly
-          className="rounded-md border border-input bg-muted/50 px-3 text-muted-foreground"
+          className="border border-input bg-muted/50 px-3 text-muted-foreground"
         />
       </Field>
 
@@ -90,7 +92,7 @@ export function MenuDetailForm() {
           id="menu-parent"
           value={parent ? parent.name : "—"}
           readOnly
-          className="rounded-md border border-input px-3 text-muted-foreground"
+          className=" border border-input px-3 text-muted-foreground"
         />
       </Field>
 
@@ -99,7 +101,7 @@ export function MenuDetailForm() {
         <Input
           id="menu-name"
           aria-invalid={Boolean(errors.name)}
-          className="rounded-md border border-input px-3"
+          className="border border-input px-3"
           {...form.register("name")}
         />
         <FieldError errors={[errors.name]} />
@@ -111,7 +113,7 @@ export function MenuDetailForm() {
           id="menu-url"
           placeholder="/laporan/penjualan"
           aria-invalid={Boolean(errors.url)}
-          className="rounded-md border border-input px-3"
+          className="border border-input px-3"
           {...form.register("url")}
         />
         <FieldError errors={[errors.url]} />
@@ -119,7 +121,7 @@ export function MenuDetailForm() {
 
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={update.isPending}>
-          {update.isPending ? "Menyimpan..." : "Save"}
+          {update.isPending ? "Menyimpan..." : "SIMPAN"}
         </Button>
         <DeleteMenuDialog menu={selected} />
       </div>
