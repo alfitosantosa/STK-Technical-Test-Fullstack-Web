@@ -115,6 +115,15 @@ sudah dipakai proses lain:
 BACKEND_PORT=4001 FRONTEND_PORT=3100 NEXT_PUBLIC_API_URL=http://localhost:4001 docker compose up -d
 ```
 
+Kalau frontend dibuka lewat IP/domain (bukan `localhost`), Next memblokir permintaan ke
+sumber daya dev (HMR) dan hot reload tidak jalan. Daftarkan host-nya di `.env` —
+tanpa `http://` dan tanpa port, dipisah koma kalau lebih dari satu. Nilai
+bawaannya `stk.santosatechid.cloud`:
+
+```bash
+ALLOWED_DEV_ORIGINS=stk.santosatechid.cloud docker compose up -d
+```
+
 > Perintah di README ini memakai `docker compose` (plugin). Kalau CLI-mu belum
 > mengenalinya, pakai `docker-compose` — perintahnya sama.
 
@@ -141,28 +150,64 @@ Bedanya dengan mode development: image dibangun lewat `Dockerfile` (multi-stage)
 frontend memakai output `standalone`, tidak ada source code yang di-mount, dan tidak
 ada hot reload.
 
-Dua hal yang perlu diketahui:
+**Satu origin, lewat reverse proxy di host.** Frontend dan API dilayani dari alamat
+yang sama, jadi browser tidak pernah memanggil port backend langsung dan CORS tidak
+dipakai sama sekali. Karena itu kedua port container hanya dibuka di `127.0.0.1`:
 
+```
+internet → reverse proxy di host (TLS)      container
+   ├─ /      →  127.0.0.1:4001  ───────────  frontend
+   └─ /api/  →  127.0.0.1:4000  ───────────  backend → database
+```
+
+Aturan nginx di host (Caddy/Traefik sama saja):
+
+```nginx
+location /      { proxy_pass http://127.0.0.1:4001; }
+location /api/  { proxy_pass http://127.0.0.1:4000; }
+# opsional, kalau dokumentasi API mau dibuka dari luar:
+location /docs  { proxy_pass http://127.0.0.1:4000; }
+```
+
+Frontend dibuild dengan `NEXT_PUBLIC_API_URL` **kosong**, artinya request ke `/api/...`
+diarahkan ke origin halaman itu sendiri. Jadi jangan diisi `http://localhost:4000`:
+alamat itu dibaca browser pengunjung, bukan server.
+
+Kalau reverse proxy-nya jalan di dalam Docker (bukan di host), sambungkan container
+proxy itu ke network compose ini (`external: true` pada network yang sama) atau ubah
+bind port-nya dari `127.0.0.1:` menjadi tanpa alamat.
+
+Hal lain:
+
+- **Healthcheck dan urutan start.** Backend menunggu database sehat, frontend menunggu
+  backend sehat; `docker compose -f docker-compose.prod.yml ps` menampilkan statusnya.
+  `/health` dipakai backend sebagai patokan.
 - **`NEXT_PUBLIC_API_URL` ditanam saat build**, karena nilainya dibaca browser. Kalau
   alamatnya berubah, image frontend harus dibangun ulang:
   `docker compose -f docker-compose.prod.yml build frontend`.
+- **Log container dibatasi** 10 MB × 3 berkas per service (`docker compose logs` tetap
+  membacanya), supaya disk server tidak penuh.
 - **Data database ada di volume `database-data`.** `docker compose down -v` akan
   menghapusnya.
+- **Password database bawaannya `menu`.** Database tidak terbuka ke luar container,
+  tapi tetap ganti `POSTGRES_PASSWORD` di `.env` kalau server ini bisa diakses orang lain.
 
 ## Konfigurasi
 
-Backend (`backend/.env`):
+Backend (`backend/.env`, atau environment di compose):
 
 | Variable | Wajib | Default | Keterangan |
 | --- | --- | --- | --- |
 | `DATABASE_URL` | ya | - | Koneksi PostgreSQL |
-| `PORT` | tidak | `3000` | Port HTTP server |
+| `PORT` | tidak | `4000` | Port HTTP server |
+| `CORS_ORIGINS` | tidak | kosong = semua origin | Origin yang boleh memanggil API dari browser, dipisah koma. Di produksi tidak perlu karena frontend dan API satu origin. |
 
-Frontend (`frontend/.env.local`):
+Frontend (`frontend/.env.local`, atau argumen build di compose):
 
 | Variable | Wajib | Default | Keterangan |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | tidak | `http://localhost:8080` | Alamat backend |
+| `NEXT_PUBLIC_API_URL` | tidak | kosong = origin yang sama | Alamat backend dari sudut pandang browser. Diisi di dev (misalnya `http://localhost:4000`), dikosongkan di produksi. |
+| `ALLOWED_DEV_ORIGINS` | tidak | - | Host yang dipakai membuka dev server selain `localhost`, dipisah koma. Hanya berpengaruh di mode development. |
 
 ## Ringkasan API
 

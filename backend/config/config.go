@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -10,6 +11,10 @@ import (
 type Config struct {
 	Port        string
 	DatabaseURL string
+	// Kosong berarti semua origin diizinkan; diisi kalau browser memanggil API
+	// langsung dari origin lain (di produksi frontend dan API satu origin, jadi
+	// CORS tidak dipakai).
+	CorsOrigins []string
 }
 
 // Load membaca .env kalau ada; kalau tidak, nilainya diambil dari environment.
@@ -20,6 +25,7 @@ func Load() *Config {
 	cfg := &Config{
 		Port:        getEnv("PORT", "4000"),
 		DatabaseURL: os.Getenv("DATABASE_URL"),
+		CorsOrigins: getEnvList("CORS_ORIGINS"),
 	}
 
 	if cfg.DatabaseURL == "" {
@@ -34,4 +40,18 @@ func getEnv(key string, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+// getEnvList memecah env var berisi daftar yang dipisah koma, contoh
+// "https://stk.santosatechid.cloud,http://localhost:3000".
+func getEnvList(key string) []string {
+	var values []string
+
+	for _, value := range strings.Split(os.Getenv(key), ",") {
+		if value = strings.TrimSpace(value); value != "" {
+			values = append(values, value)
+		}
+	}
+
+	return values
 }

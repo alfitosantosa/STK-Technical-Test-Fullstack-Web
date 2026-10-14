@@ -1,6 +1,8 @@
 import type { Menu, MenuId, MenuNode, MenuPayload, MovePayload } from "@/lib/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+// Kosong = panggil API di origin yang sama dengan halaman (dipakai di produksi,
+// request-nya diteruskan reverse proxy ke backend). Di dev diisi alamat backend.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 // Membawa status HTTP supaya komponen bisa membedakan "data tidak ditemukan"
 // dari "server sedang bermasalah".
@@ -48,9 +50,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     });
   } catch {
     // fetch cuma gagal begini kalau servernya tidak bisa dihubungi (belum jalan,
-    // port salah, atau koneksi putus).
+    // alamat salah, atau koneksi putus).
+    const alamat = API_URL ? ` di ${API_URL}` : "";
     throw new ApiError(
-      `Tidak bisa menghubungi server di ${API_URL}. Pastikan backend sedang berjalan.`,
+      `Tidak bisa menghubungi server${alamat}. Pastikan backend sedang berjalan.`,
       0,
     );
   }

@@ -20,8 +20,9 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
 # Alamat API diberikan saat build, karena nilai NEXT_PUBLIC_* ditanam ke berkas
-# JavaScript yang dikirim ke browser.
-ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+# JavaScript yang dikirim ke browser. Kosong = origin yang sama dengan halaman
+# (produksi: "/api/..." diteruskan reverse proxy ke backend).
+ARG NEXT_PUBLIC_API_URL=""
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN bun run build

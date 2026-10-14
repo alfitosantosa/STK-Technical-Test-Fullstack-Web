@@ -42,9 +42,10 @@ func main() {
 
 	app.Use(recover.New())
 	app.Use(logger.New())
-	// Frontend dev jalan di port lain, jadi CORS dibuka untuk semua origin.
-	// Batasi AllowOrigins sebelum production.
-	app.Use(cors.New())
+	// Produksi: frontend dan API satu origin lewat reverse proxy, jadi request
+	// dari browser tidak butuh CORS. CORS_ORIGINS dipakai kalau API tetap
+	// dipanggil lintas origin; kalau kosong, semua origin diizinkan (dev).
+	app.Use(cors.New(cors.Config{AllowOrigins: cfg.CorsOrigins}))
 
 	menuRepository := repository.NewMenuRepository(db)
 	menuService := service.NewMenuService(menuRepository)
