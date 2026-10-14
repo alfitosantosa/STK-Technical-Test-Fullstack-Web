@@ -26,15 +26,13 @@ import { useMenuStore } from "@/stores/menu-store";
 type MenuTreeProps = {
   // Menu yang ditampilkan (sudah disaring root terpilih dan kata kunci).
   nodes: MenuNode[];
-  // Tree lengkap dari API, dipakai untuk menghitung induk dan urutan saat drag.
+  // Tree lengkap dari API, dipakai buat menghitung induk dan urutan saat drag.
   fullTree: MenuNode[];
 };
 
-// MenuTree menampilkan menu bersarang dan mengatur drag and drop.
-//
-// Cara memindahkan menu: setiap baris punya dua area drop —
-//   garis tipis di atas baris  -> menyisipkan menu tepat di atas baris itu
-//   badan baris                -> menjadikan menu itu induknya (masuk sebagai anak)
+// Tiap baris punya dua area drop:
+//   garis tipis di atas baris -> sisip tepat di atas baris itu
+//   badan baris               -> jadikan baris itu induknya (masuk sebagai anak)
 export function MenuTree({ nodes, fullTree }: MenuTreeProps) {
   const { move } = useMenuMutations();
   const expandedIds = useMenuStore((state) => state.expandedIds);
@@ -50,7 +48,7 @@ export function MenuTree({ nodes, fullTree }: MenuTreeProps) {
       return;
     }
 
-    // Id menu berupa CUID2 (teks), jadi dipakai apa adanya tanpa diubah ke angka.
+    // Id dari dnd-kit berupa CUID2 (teks), dipakai apa adanya tanpa diubah ke angka.
     const activeId = String(active.id);
     const [zone, targetId] = String(over.id).split(":");
 
@@ -64,7 +62,6 @@ export function MenuTree({ nodes, fullTree }: MenuTreeProps) {
       return;
     }
 
-    // Dijadikan anak dari menu tujuan, urutannya paling akhir.
     if (zone === "into") {
       move.mutate({
         id: activeId,
@@ -78,8 +75,8 @@ export function MenuTree({ nodes, fullTree }: MenuTreeProps) {
     }
 
     // Disisipkan tepat di atas menu tujuan. Indeksnya dihitung dari daftar
-    // saudara tanpa menu yang sedang dipindah, karena backend menyisipkan
-    // ke daftar setelah menu itu dikeluarkan dari urutan lamanya.
+    // saudara tanpa menu yang sedang dipindah, karena backend menyisipkan ke
+    // daftar itu setelah menu tersebut dikeluarkan dari urutan lamanya.
     const siblings = siblingNodes(fullTree, targetId).filter(
       (sibling) => sibling.id !== activeId,
     );
@@ -123,7 +120,7 @@ function MenuTreeRow({ node, depth }: { node: MenuNode; depth: number }) {
 
   const hasChildren = node.children.length > 0;
   const isSelected = selectedId === node.id;
-  // Saat mencari, semua hasil dibuka otomatis supaya kecocokan langsung terlihat.
+  // Saat mencari, semua hasil dibuka otomatis supaya kecocokannya langsung terlihat.
   const isExpanded = keyword.trim() !== "" || expandedIds.includes(node.id);
 
   const { setNodeRef: setBeforeRef, isOver: isOverBefore } = useDroppable({

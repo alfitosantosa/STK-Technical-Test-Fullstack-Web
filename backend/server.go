@@ -20,8 +20,8 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/recover"
 )
 
-// Spec OpenAPI dibundel ke binary supaya halaman /docs tetap jalan
-// tanpa perlu ikut menyalin file api.docs.yml.
+// Spec OpenAPI ikut dibundel ke binary supaya /docs jalan tanpa perlu menyalin
+// api.docs.yml.
 //
 //go:embed api.docs.yml
 var apiDocs []byte
@@ -42,11 +42,10 @@ func main() {
 
 	app.Use(recover.New())
 	app.Use(logger.New())
-	// Frontend berjalan di port berbeda saat development, jadi CORS dibuka.
-	// ponytail: masih terbuka untuk semua origin; batasi AllowOrigins sebelum production.
+	// Frontend dev jalan di port lain, jadi CORS dibuka untuk semua origin.
+	// Batasi AllowOrigins sebelum production.
 	app.Use(cors.New())
 
-	// main adalah tempat menyusun dependency, dari yang paling bawah.
 	menuRepository := repository.NewMenuRepository(db)
 	menuService := service.NewMenuService(menuRepository)
 	menuHandler := route.NewMenuHandler(menuService)
@@ -57,10 +56,8 @@ func main() {
 	log.Fatal(app.Listen(":" + cfg.Port))
 }
 
-// structValidator menyambungkan library validator ke Fiber.
-//
-// Fiber memanggil Validate setiap kali request body di-bind ke struct, jadi
-// aturan validasi cukup ditulis sebagai tag `validate:"..."` di model.
+// structValidator menyambungkan library validator ke Fiber, jadi aturan
+// validasi cukup ditulis sebagai tag `validate:"..."` di model.
 type structValidator struct {
 	validate *validator.Validate
 }
@@ -68,8 +65,7 @@ type structValidator struct {
 func newStructValidator() *structValidator {
 	validate := validator.New()
 
-	// Nama field pada pesan error mengikuti tag json, supaya klien menerima
-	// "name" (nama field yang dia kirim) bukan "Name".
+	// Pesan error pakai nama tag json ("name"), bukan nama field Go ("Name").
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		return strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
 	})
@@ -81,11 +77,9 @@ func (v *structValidator) Validate(out any) error {
 	return v.validate.Struct(out)
 }
 
-// errorHandler adalah satu tempat untuk mengubah error menjadi response JSON,
-// supaya handler tidak perlu menulis format error sendiri.
 func errorHandler(c fiber.Ctx, err error) error {
-	// Body tidak lolos aturan validasi: kirim detail per field supaya frontend
-	// bisa menandai input mana yang salah.
+	// Body tidak lolos validasi: kirim detail per field supaya frontend bisa
+	// menandai input mana yang salah.
 	var validationErrors validator.ValidationErrors
 	if errors.As(err, &validationErrors) {
 		details := make([]fiber.Map, 0, len(validationErrors))
@@ -102,7 +96,6 @@ func errorHandler(c fiber.Ctx, err error) error {
 		})
 	}
 
-	// Body tidak bisa dibaca: JSON rusak atau tipe datanya salah.
 	var bindError *fiber.BindError
 	if errors.As(err, &bindError) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -116,8 +109,8 @@ func errorHandler(c fiber.Ctx, err error) error {
 		return c.Status(httpError.Code).JSON(fiber.Map{"error": httpError.Message})
 	}
 
-	// Sisanya error tak terduga. Detail aslinya dicatat untuk developer,
-	// tapi tidak dikirim ke klien.
+	// Sisanya error tak terduga: detail aslinya dicatat untuk developer, tapi
+	// tidak dikirim ke klien.
 	log.Printf("error tak terduga: %v", err)
 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 		"error": "terjadi kesalahan pada server",

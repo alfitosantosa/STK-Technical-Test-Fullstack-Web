@@ -9,10 +9,10 @@ function subscribe(onChange: () => void) {
   return () => mediaQuery.removeEventListener("change", onChange)
 }
 
+// useSyncExternalStore supaya browser langsung dapat nilai yang benar tanpa
+// setState di dalam effect, dan server tetap pakai nilai awal yang sama (false)
+// sehingga tidak ada bedanya saat hydration.
 export function useIsMobile() {
-  // useSyncExternalStore dipakai supaya browser langsung mendapat nilai yang
-  // benar tanpa setState di dalam effect, dan server tetap memakai nilai awal
-  // yang sama (false) sehingga tidak ada perbedaan saat hydration.
   return React.useSyncExternalStore(
     subscribe,
     () => window.matchMedia(MOBILE_QUERY).matches,

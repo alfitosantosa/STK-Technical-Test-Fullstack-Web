@@ -34,10 +34,8 @@ import { useMenuTree } from "@/lib/queries";
 import type { MenuNode } from "@/lib/types";
 import { useMenuStore } from "@/stores/menu-store";
 
-// Ikon untuk setiap menu di sidebar.
-//
-// Ini murni tampilan: nama menu ditentukan user, jadi ikonnya ditebak dari
-// kata kunci yang umum dan ada ikon cadangan kalau tidak ada yang cocok.
+// Nama menu ditentukan user, jadi ikonnya cuma ditebak dari kata kunci yang umum;
+// ada ikon cadangan kalau tidak ada yang cocok.
 function ikonMenu(nama: string): LucideIcon {
   const teks = nama.toLowerCase();
 
@@ -52,17 +50,12 @@ function ikonMenu(nama: string): LucideIcon {
   return CircleIcon;
 }
 
-// Sidebar aplikasi.
-//
-// Isi menu diambil dari API (dua level pertama: menu teratas dan anaknya),
-// jadi sidebar selalu mengikuti data yang sedang dikelola. Halaman "Menus"
-// sendiri ditulis statis karena dia memang halaman yang sedang dibuka.
+// Isi menunya dari API (menu teratas + anaknya); item "Menus" ditulis statis
+// karena itu halaman yang sedang dibuka.
 export function AppSidebar() {
   const { data: roots, isPending, error } = useMenuTree();
   const { selectedId, select, setRootId } = useMenuStore();
 
-  // Memilih menu dari sidebar sekaligus menentukan menu teratas yang
-  // ditampilkan di halaman, supaya menu yang dipilih pasti terlihat.
   const bukaDariSidebar = (root: MenuNode, node: MenuNode) => {
     setRootId(root.id);
     select(node.id);

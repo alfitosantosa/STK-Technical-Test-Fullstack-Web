@@ -1,11 +1,6 @@
--- Migration 0001: membuat tabel menu.
---
--- Hierarki menu disimpan lewat kolom parent_id:
---   parent_id NULL    -> menu paling atas (root)
---   parent_id terisi  -> submenu dari menu dengan id tersebut
---
--- ON DELETE CASCADE: menghapus satu menu otomatis menghapus semua submenu
--- di bawahnya, jadi tidak ada submenu yang menggantung tanpa induk.
+-- Hierarki lewat parent_id: NULL = menu paling atas, terisi = submenu.
+-- ON DELETE CASCADE: hapus satu menu otomatis menghapus semua submenu di bawahnya,
+-- jadi tidak ada submenu yang menggantung tanpa induk.
 CREATE TABLE IF NOT EXISTS menus (
     id         BIGSERIAL PRIMARY KEY,
     parent_id  BIGINT REFERENCES menus (id) ON DELETE CASCADE,
@@ -16,5 +11,5 @@ CREATE TABLE IF NOT EXISTS menus (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Dipakai saat menampilkan submenu dari sebuah menu, sudah urut sesuai tampilannya.
+-- Penunjang saat menampilkan submenu sebuah menu (sudah urut tampilannya).
 CREATE INDEX IF NOT EXISTS menus_parent_id_position_idx ON menus (parent_id, position);

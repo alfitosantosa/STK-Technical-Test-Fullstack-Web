@@ -4,8 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
-  // Menghasilkan berkas runtime minimal di .next/standalone. Dipakai oleh
-  // Dockerfile tahap produksi supaya image yang dikirim lebih kecil.
+  // Buat Dockerfile produksi (runtime-nya di .next/standalone, image lebih kecil).
   output: "standalone",
   turbopack: {
     rules: {

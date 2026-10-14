@@ -35,10 +35,8 @@ type AddMenuDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-// AddMenuDialog menambahkan menu baru lewat form di dalam dialog.
-//
-// Formnya baru dipasang setiap kali dialog dibuka, jadi isinya selalu kosong
-// dan induknya mengikuti menu yang sedang dipilih di tree.
+// Formnya baru dipasang tiap dialog dibuka, jadi isinya selalu kosong dan
+// induknya mengikuti menu yang sedang dipilih di tree.
 export function AddMenuDialog({ open, onOpenChange }: AddMenuDialogProps) {
   const selectedId = useMenuStore((state) => state.selectedId);
 
@@ -93,7 +91,7 @@ function AddMenuForm({ defaultParentId, onDone }: AddMenuFormProps) {
       { name: values.name, url: values.url, parent_id: values.parent_id },
       {
         onSuccess: (menu) => {
-          // Menu baru langsung dipilih supaya hasilnya terlihat di panel detail.
+          // Menu baru langsung dipilih supaya hasilnya kelihatan di panel detail.
           select(menu.id);
           onDone();
         },

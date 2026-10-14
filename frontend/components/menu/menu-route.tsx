@@ -10,11 +10,9 @@ import { useMenuTree } from "@/lib/queries";
 import { menuPath } from "@/lib/tree";
 import { useMenuStore } from "@/stores/menu-store";
 
-// MenuRoute membuka satu menu lewat alamat /menus/<id>.
-//
 // Isinya sengaja sama dengan halaman "/" (toolbar, tree, panel detail) supaya
-// perpindahan antar halaman tidak terasa seperti pindah aplikasi; yang berbeda
-// hanya judulnya, diganti breadcrumb yang menunjukkan posisi menu itu.
+// pindah halaman tidak terasa seperti pindah aplikasi; bedanya cuma judulnya,
+// diganti breadcrumb yang menunjukkan posisi menu itu.
 export function MenuRoute({ menuId }: { menuId: string }) {
   const { data: roots, isPending } = useMenuTree();
   const select = useMenuStore((state) => state.select);
@@ -24,7 +22,7 @@ export function MenuRoute({ menuId }: { menuId: string }) {
   const current = path.at(-1) ?? null;
 
   // Menu dari alamat ikut dipilih supaya dropdown, tree, dan panel detail
-  // langsung menunjuk ke menu itu — sama seperti kalau dipilih manual di "/".
+  // langsung menunjuk ke menu itu.
   useEffect(() => {
     if (!current) {
       return;

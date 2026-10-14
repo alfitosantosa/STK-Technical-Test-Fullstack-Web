@@ -20,17 +20,15 @@ import type { MenuNode } from "@/lib/types";
 import { useMenuStore } from "@/stores/menu-store";
 
 type MenuToolbarProps = {
-  // Semua menu level paling atas, dipakai sebagai pilihan dropdown.
+  // Semua menu level paling atas, buat pilihan dropdown.
   roots: MenuNode[];
   // Menu teratas yang sedang ditampilkan.
   visibleRoot: MenuNode | null;
-  // Pengganti judul halaman. Dipakai /menus/<id> untuk menaruh breadcrumb di
-  // posisi judul; halaman "/" membiarkannya kosong dan memakai judul bawaan.
+  // Pengganti judul halaman: /menus/<id> menaruh breadcrumb di posisi judul,
+  // halaman "/" membiarkannya kosong dan memakai judul bawaan.
   heading?: ReactNode;
 };
 
-// MenuToolbar berisi judul halaman, pemilih menu teratas, tombol
-// Expand/Collapse All, pencarian, dan tombol tambah menu.
 export function MenuToolbar({ roots, visibleRoot, heading }: MenuToolbarProps) {
   const rootId = useMenuStore((state) => state.rootId);
   const setRootId = useMenuStore((state) => state.setRootId);
@@ -40,18 +38,17 @@ export function MenuToolbar({ roots, visibleRoot, heading }: MenuToolbarProps) {
   const showDetail = useMenuStore((state) => state.showDetail);
   const toggleDetail = useMenuStore((state) => state.toggleDetail);
 
-  // Dialog form menu baru dibuka dari tombol Tambah.
   const [dialogTambahTerbuka, setDialogTambahTerbuka] = useState(false);
 
-  // base-ui Select memakai peta nilai -> label untuk menampilkan pilihan terpilih.
+  // base-ui Select pakai peta nilai -> label buat menampilkan pilihan terpilih.
   const rootItems = Object.fromEntries(
     roots.map((root) => [root.id, root.name]),
   );
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Checkbox dari mockup. Visualnya mengikuti mockup (caption kecil "Menus"),
-          sedangkan nama aksesibelnya menjelaskan fungsinya. */}
+      {/* Checkbox dari mockup: visualnya ikut mockup ("Menus Detail Toggle"),
+          nama aksesibelnya yang menjelaskan fungsinya. */}
       <div className="flex items-center gap-2">
         <Checkbox
           id="toggle-detail"

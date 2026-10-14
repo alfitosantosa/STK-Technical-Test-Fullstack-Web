@@ -8,8 +8,8 @@ import (
 	"assesment/model"
 )
 
-// TestBuildTree memastikan menu datar tersusun jadi pohon sesuai hierarki
-// dan urutan position pada setiap level.
+// Menu datar harus tersusun jadi pohon sesuai hierarki dan urutan position di
+// tiap level.
 func TestBuildTree(t *testing.T) {
 	menus := []model.Menu{
 		{ID: "m5", ParentID: new("m4"), Name: "Penjualan Harian", Position: 0},
@@ -43,14 +43,13 @@ func TestBuildTree(t *testing.T) {
 		t.Errorf("jumlah submenu Laporan = %d, mau 0", len(roots[1].Children))
 	}
 
-	// Submenu dari submenu tetap ikut tersusun.
 	if len(roots[0].Children[0].Children) != 1 || roots[0].Children[0].Children[0].ID != "m5" {
 		t.Errorf("submenu Kategori salah: %+v", roots[0].Children[0].Children)
 	}
 }
 
-// TestBuildTreeChildrenNotEmpty memastikan menu tanpa submenu mengirim
-// "children": [] dan bukan null, supaya frontend tidak perlu menangani dua bentuk.
+// Menu tanpa submenu harus mengirim "children": [] dan bukan null, supaya
+// frontend tidak perlu menangani dua bentuk.
 func TestBuildTreeChildrenNotEmpty(t *testing.T) {
 	roots := buildTree([]model.Menu{{ID: "m1", Name: "Laporan"}})
 
@@ -64,8 +63,8 @@ func TestBuildTreeChildrenNotEmpty(t *testing.T) {
 	}
 }
 
-// TestBuildTreeOrphan memastikan menu yang induknya tidak ada di daftar tetap
-// ditampilkan di level paling atas, bukan hilang dari response.
+// Menu yang induknya tidak ada di daftar tetap tampil di level paling atas,
+// bukan hilang dari response.
 func TestBuildTreeOrphan(t *testing.T) {
 	roots := buildTree([]model.Menu{{ID: "m7", ParentID: new("m99"), Name: "Menu Yatim"}})
 

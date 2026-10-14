@@ -7,17 +7,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config menyimpan semua konfigurasi yang dibaca dari environment variable.
 type Config struct {
 	Port        string
 	DatabaseURL string
 }
 
-// Load membaca file .env lalu mengambil nilai yang dibutuhkan.
-//
-// Kalau file .env tidak ada, nilainya diambil langsung dari environment.
-// Ini yang terjadi saat aplikasi jalan di Docker, karena environment variable
-// di sana diisi lewat docker-compose.yml.
+// Load membaca .env kalau ada; kalau tidak, nilainya diambil dari environment.
+// Di Docker env var diisi lewat docker-compose.yml, jadi .env tidak dipakai.
 func Load() *Config {
 	_ = godotenv.Load()
 
@@ -33,7 +29,6 @@ func Load() *Config {
 	return cfg
 }
 
-// getEnv mengembalikan nilai environment variable, atau nilai cadangan kalau kosong.
 func getEnv(key string, fallback string) string {
 	if value := os.Getenv(key); value != "" {
 		return value

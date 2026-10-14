@@ -11,29 +11,26 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// File SQL migration ikut dibundel ke dalam binary saat compile, jadi folder
-// migrations tidak perlu ikut disalin ke dalam Docker image.
+// Migrasi ikut dibundel ke binary, jadi folder migrations tidak perlu disalin
+// ke Docker image.
 //
 //go:embed migrations/*.sql
 var migrationFiles embed.FS
 
-// Connect membuka koneksi ke PostgreSQL.
 func Connect(databaseURL string) *gorm.DB {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN: databaseURL,
-		// Satu file migration boleh berisi lebih dari satu statement
-		// (CREATE TABLE lalu CREATE INDEX). Mode default pgx hanya mengizinkan
-		// satu statement per eksekusi, jadi simple protocol dipakai di sini.
-		// ponytail: simple protocol mematikan cache prepared statement. Skala
-		// aplikasi ini tidak terasa; kalau nanti throughput jadi masalah,
-		// pisahkan koneksi migration dari koneksi aplikasi.
+		// Satu file migration bisa berisi beberapa statement (CREATE TABLE lalu
+		// CREATE INDEX); mode default pgx cuma boleh satu statement per eksekusi.
+		// Ini mematikan cache prepared statement. Di skala aplikasi ini tidak
+		// terasa; kalau throughput jadi masalah, pisahkan koneksi migration dari
+		// koneksi aplikasi.
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{
-		// Cukup tampilkan error dan query lambat, supaya log terminal tetap enak dibaca.
 		Logger: logger.Default.LogMode(logger.Warn),
-		// Timestamp selalu ditulis dalam UTC. Tanpa ini, waktu dari POST/PUT
-		// memakai zona waktu server (+07:00) sedangkan hasil GET dari database
-		// memakai UTC, jadi satu response bisa berisi dua format waktu berbeda.
+		// Timestamp ditulis UTC. Tanpa ini, waktu dari POST/PUT memakai zona server
+		// (+07:00) sedangkan hasil GET dari database UTC, jadi satu response bisa
+		// berisi dua format waktu berbeda.
 		NowFunc: func() time.Time { return time.Now().UTC() },
 	})
 	if err != nil {
@@ -43,10 +40,8 @@ func Connect(databaseURL string) *gorm.DB {
 	return db
 }
 
-// Migrate menjalankan semua file di folder migrations yang belum pernah dijalankan.
-//
-// File yang sudah dijalankan dicatat di tabel schema_migrations, jadi fungsi ini
-// aman dipanggil setiap kali server start.
+// Migrate menjalankan file migration yang belum pernah dijalankan. Yang sudah
+// jalan dicatat di schema_migrations, jadi aman dipanggil tiap server start.
 func Migrate(db *gorm.DB) error {
 	if err := createMigrationTable(db); err != nil {
 		return err
@@ -57,7 +52,7 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
-	// ReadDir sudah mengurutkan nama file, jadi 0001 jalan sebelum 0002.
+	// ReadDir sudah urut, jadi 0001 jalan sebelum 0002.
 	entries, err := migrationFiles.ReadDir("migrations")
 	if err != nil {
 		return fmt.Errorf("gagal membaca folder migrations: %w", err)
@@ -77,7 +72,6 @@ func Migrate(db *gorm.DB) error {
 	return nil
 }
 
-// createMigrationTable menyiapkan tabel pencatat migration.
 func createMigrationTable(db *gorm.DB) error {
 	err := db.Exec(`CREATE TABLE IF NOT EXISTS schema_migrations (
 		name       VARCHAR(255) PRIMARY KEY,
@@ -89,7 +83,6 @@ func createMigrationTable(db *gorm.DB) error {
 	return nil
 }
 
-// appliedMigrations mengembalikan daftar nama file migration yang sudah dijalankan.
 func appliedMigrations(db *gorm.DB) (map[string]bool, error) {
 	var names []string
 	if err := db.Raw("SELECT name FROM schema_migrations").Scan(&names).Error; err != nil {
@@ -103,9 +96,9 @@ func appliedMigrations(db *gorm.DB) (map[string]bool, error) {
 	return applied, nil
 }
 
-// applyMigration menjalankan satu file migration.
-// Isi file dan pencatatannya dijalankan dalam satu transaksi, jadi kalau SQL-nya
-// gagal, tabel schema_migrations tidak ikut terisi.
+// applyMigration menjalankan satu file migration. Isi file dan pencatatannya
+// dijalankan dalam satu transaksi, jadi SQL yang gagal tidak meninggalkan baris
+// di schema_migrations.
 func applyMigration(db *gorm.DB, name string) error {
 	content, err := migrationFiles.ReadFile("migrations/" + name)
 	if err != nil {

@@ -51,15 +51,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         playfairDisplayHeading.variable,
       )}
     >
-      {/* SidebarProvider harus berada di dalam body: dia merender elemen
-          pembungkus, jadi tidak boleh membungkus <html>. */}
+      {/* SidebarProvider merender elemen pembungkus, jadi tempatnya di dalam
+          body — tidak boleh membungkus <html>. */}
       <body className="min-h-full">
         <Providers>
           <SidebarProvider>
             <AppSidebar />
-            {/* min-w-0 wajib: tanpa itu elemen flex ini menolak menyusut di
-                bawah lebar min-content isinya, sehingga halaman melebar
-                horizontal dan konten tertimpa sidebar yang posisinya fixed. */}
+            {/* min-w-0 wajib: tanpa itu elemen flex ini tidak mau menyusut di
+                bawah lebar min-content isinya, jadi halaman melebar horizontal
+                dan kontennya ketimpa sidebar yang posisinya fixed. */}
             <SidebarInset className="min-w-0">
               <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger />

@@ -15,11 +15,9 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// TestCreateIDBerupaCUID memastikan id menu dibuat aplikasi dalam bentuk CUID2
-// yang valid, bukan angka dari database.
-//
-// Id dibuat saat Create, jadi test ini butuh database. Kalau DATABASE_URL tidak
-// ada atau database tidak bisa dihubungi, test di-skip.
+// ID menu harus CUID2 yang valid, bukan angka dari database. Butuh database,
+// jadi test-nya di-skip kalau DATABASE_URL kosong atau database tidak bisa
+// dihubungi.
 func TestCreateIDBerupaCUID(t *testing.T) {
 	svc := newTestService(t)
 
@@ -41,10 +39,8 @@ func TestCreateIDBerupaCUID(t *testing.T) {
 	}
 }
 
-// newTestService menyiapkan service dengan koneksi database nyata.
-//
-// DATABASE_URL dibaca dari environment, atau dari .env di folder induk karena
-// test dijalankan dari dalam folder service/.
+// DATABASE_URL dibaca dari environment, atau dari ../.env karena test jalan dari
+// dalam folder service/.
 func newTestService(t *testing.T) *MenuService {
 	t.Helper()
 

@@ -2,8 +2,7 @@ package route
 
 import "github.com/gofiber/fiber/v3"
 
-// swaggerHTML adalah halaman Swagger UI yang membaca spec dari /api.docs.yml.
-// Library-nya diambil dari CDN supaya tidak ada dependency tambahan di Go.
+// Swagger UI; library-nya diambil dari CDN biar tidak nambah dependency Go.
 const swaggerHTML = `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -27,10 +26,6 @@ const swaggerHTML = `<!DOCTYPE html>
 </html>
 `
 
-// registerDocsRoutes menyajikan dokumentasi API.
-//
-// apiDocs adalah isi file api.docs.yml. File itu dibundel ke binary saat compile
-// (lihat server.go), jadi dokumentasi tetap tampil tanpa perlu ikut menyalin file.
 func registerDocsRoutes(app *fiber.App, apiDocs []byte) {
 	app.Get("/api.docs.yml", func(c fiber.Ctx) error {
 		c.Set(fiber.HeaderContentType, "application/yaml")

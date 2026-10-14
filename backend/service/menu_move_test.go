@@ -6,11 +6,8 @@ import (
 	"assesment/model"
 )
 
-// TestPlanPositions memastikan penomoran posisi sibling setelah satu menu
-// disisipkan selalu rapat 0..n tanpa bolong dan tanpa duplikat, dengan satu
-// slot kosong di index sisip.
-//
-// sibling pada model.Menu dipakai apa adanya; parent_id nil berarti level atas.
+// Penomoran posisi saudara setelah satu menu disisipkan harus rapat 0..n, tanpa
+// bolong dan tanpa duplikat, dengan satu slot kosong di index sisip.
 func TestPlanPositions(t *testing.T) {
 	siblings := []model.Menu{
 		{ID: "m1", Name: "Satu", Position: 0},
@@ -65,8 +62,6 @@ func TestPlanPositions(t *testing.T) {
 	}
 }
 
-// TestPlanPositionsRapatTanpaDuplikat memastikan hasil penomoran tidak punya
-// posisi kembar dan tidak ada angka yang bolong.
 func TestPlanPositionsRapatTanpaDuplikat(t *testing.T) {
 	siblings := []model.Menu{
 		{ID: "m1", Position: 0},
@@ -84,7 +79,7 @@ func TestPlanPositionsRapatTanpaDuplikat(t *testing.T) {
 		terpakai[menu.Position] = true
 	}
 
-	// targetIndex 2 -> posisi yang terpakai 0, 1, dan 3 (slot 2 untuk menu yang dipindah).
+	// targetIndex 2 -> yang terpakai 0, 1, dan 3 (slot 2 buat menu yang pindah).
 	for _, position := range []int{0, 1, 3} {
 		if !terpakai[position] {
 			t.Errorf("posisi %d tidak terpakai, urutan tidak rapat", position)

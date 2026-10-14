@@ -12,15 +12,13 @@ import (
 	"github.com/nrednav/cuid2"
 )
 
-// Error yang dikembalikan service. Layer route yang mengubahnya menjadi status HTTP.
+// Error dari service; layer route yang mengubahnya jadi status HTTP.
 var (
 	ErrNotFound       = errors.New("menu tidak ditemukan")
 	ErrParentNotFound = errors.New("menu induk tidak ditemukan")
 	ErrInvalidParent  = errors.New("menu induk tidak boleh menu itu sendiri atau submenu di bawahnya")
 )
 
-// MenuService berisi aturan bisnis menu: validasi induk, penentuan urutan,
-// dan penyusunan menu bersarang.
 type MenuService struct {
 	repo *repository.MenuRepository
 }
@@ -29,13 +27,10 @@ func NewMenuService(repo *repository.MenuRepository) *MenuService {
 	return &MenuService{repo: repo}
 }
 
-// List mengembalikan semua menu dalam bentuk datar.
 func (s *MenuService) List(ctx context.Context) ([]model.Menu, error) {
 	return s.repo.FindAll(ctx)
 }
 
-// Tree mengembalikan menu bersarang. Yang dikembalikan hanya menu paling atas,
-// submenu-nya ada di dalam field children.
 func (s *MenuService) Tree(ctx context.Context) ([]*model.MenuNode, error) {
 	menus, err := s.repo.FindAll(ctx)
 	if err != nil {
@@ -45,7 +40,6 @@ func (s *MenuService) Tree(ctx context.Context) ([]*model.MenuNode, error) {
 	return buildTree(menus), nil
 }
 
-// Get mengambil satu menu.
 func (s *MenuService) Get(ctx context.Context, id string) (*model.Menu, error) {
 	menu, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -58,8 +52,8 @@ func (s *MenuService) Get(ctx context.Context, id string) (*model.Menu, error) {
 	return menu, nil
 }
 
-// Create menambahkan menu baru.
-// Kalau position tidak dikirim, menu ditaruh di urutan paling akhir.
+// Create menambahkan menu. Position yang tidak dikirim berarti menu ditaruh di
+// urutan paling akhir.
 func (s *MenuService) Create(ctx context.Context, req model.MenuRequest) (*model.Menu, error) {
 	if err := s.checkParentExists(ctx, req.ParentID); err != nil {
 		return nil, err
@@ -77,7 +71,7 @@ func (s *MenuService) Create(ctx context.Context, req model.MenuRequest) (*model
 	}
 
 	menu := &model.Menu{
-		// Id dibuat aplikasi, bukan database, karena kolom id sekarang TEXT (CUID2).
+		// id dibuat aplikasi karena kolomnya TEXT (CUID2), bukan auto-increment.
 		ID:       cuid2.Generate(),
 		ParentID: req.ParentID,
 		Name:     req.Name,
@@ -91,12 +85,10 @@ func (s *MenuService) Create(ctx context.Context, req model.MenuRequest) (*model
 	return menu, nil
 }
 
-// Update mengganti data menu.
-//
-// Position hanya diubah kalau dikirim, supaya urutan yang sudah diatur tidak
-// hilang saat user cuma mengedit nama menu.
-// ponytail: posisi yang dikirim langsung dipakai tanpa menggeser menu lain.
-// Penggeseran sibling dikerjakan di endpoint reorder (bagian bonus).
+// Update mengganti data menu. Position cuma diubah kalau dikirim, supaya urutan
+// yang sudah diatur tidak hilang saat user cuma mengedit nama.
+// Position yang dikirim dipakai apa adanya tanpa menggeser saudaranya;
+// penggeseran dikerjakan lewat Move.
 func (s *MenuService) Update(ctx context.Context, id string, req model.MenuRequest) (*model.Menu, error) {
 	menu, err := s.Get(ctx, id)
 	if err != nil {
@@ -121,14 +113,12 @@ func (s *MenuService) Update(ctx context.Context, id string, req model.MenuReque
 	return menu, nil
 }
 
-// Move memindahkan menu ke induk lain dan/atau mengubah urutannya.
+// Move memindahkan menu ke induk lain dan/atau mengubah urutannya — dua-duanya
+// sebenarnya operasi yang sama: menaruh satu menu di posisi tertentu di bawah
+// induk tertentu.
 //
-// Endpoint ini melayani dua kebutuhan sekaligus: mengurutkan ulang menu dalam
-// satu level (parent_id tetap, position berubah) dan memindahkan menu antar
-// induk (parent_id berubah).
-//
-// Seluruh perubahan parent_id dan position sibling di induk lama maupun baru
-// dikerjakan dalam satu transaksi, supaya urutan tidak pernah setengah jadi.
+// Semua perubahan parent_id dan position (di induk lama maupun baru) dikerjakan
+// dalam satu transaksi, supaya urutan tidak pernah setengah jadi.
 func (s *MenuService) Move(ctx context.Context, id string, req model.MoveMenuRequest) (*model.Menu, error) {
 	menu, err := s.Get(ctx, id)
 	if err != nil {
@@ -142,7 +132,7 @@ func (s *MenuService) Move(ctx context.Context, id string, req model.MoveMenuReq
 	oldParentID := menu.ParentID
 
 	err = s.repo.Transaction(ctx, func(tx *repository.MenuRepository) error {
-		// Sibling di induk baru, tanpa menu yang dipindah, sudah urut position.
+		// Saudara di induk baru, tanpa menu yang dipindah, sudah urut position.
 		siblings, err := tx.FindSiblings(ctx, req.ParentID, id)
 		if err != nil {
 			return err
@@ -157,19 +147,19 @@ func (s *MenuService) Move(ctx context.Context, id string, req model.MoveMenuReq
 			return err
 		}
 
-		// Sibling di induk baru digeser satu slot mulai dari targetIndex
-		// supaya menu yang dipindah dapat tempat di posisi itu.
+		// Geser saudara satu slot mulai targetIndex supaya menu yang dipindah
+		// dapat tempat di posisi itu.
 		for _, sibling := range planPositions(siblings, targetIndex) {
 			if err := tx.UpdateParentAndPosition(ctx, sibling.ID, sibling.ParentID, sibling.Position); err != nil {
 				return err
 			}
 		}
 
-		// Kalau induknya berubah, urutan di induk lama ikut dirapatkan.
 		if sameParent(oldParentID, req.ParentID) {
 			return nil
 		}
 
+		// Induknya berubah, jadi urutan di induk lama ikut dirapatkan.
 		oldSiblings, err := tx.FindSiblings(ctx, oldParentID, id)
 		if err != nil {
 			return err
@@ -190,13 +180,10 @@ func (s *MenuService) Move(ctx context.Context, id string, req model.MoveMenuReq
 	return s.Get(ctx, id)
 }
 
-// planPositions menghitung posisi final seluruh sibling setelah satu menu
-// disisipkan pada targetIndex.
-//
-// siblings harus sudah urut (position lalu id). Hasilnya berisi menu yang sama
-// dengan posisi yang sudah dirapatkan 0..n, dengan satu slot kosong di
-// targetIndex untuk menu yang dipindah. targetIndex di luar jangkauan dijepit
-// ke ujung terdekat, bukan dianggap error.
+// planPositions menghitung posisi final seluruh saudara setelah satu menu
+// disisipkan di targetIndex: 0..n rapat dengan satu slot kosong di targetIndex
+// untuk menu yang dipindah. siblings harus sudah urut (position lalu id), dan
+// targetIndex di luar jangkauan dijepit ke ujung, bukan dianggap error.
 //
 // Dipisah dari Move supaya penomoran posisi bisa ditest tanpa database.
 func planPositions(siblings []model.Menu, targetIndex int) []model.Menu {
@@ -216,7 +203,6 @@ func planPositions(siblings []model.Menu, targetIndex int) []model.Menu {
 	return planned
 }
 
-// clampIndex menjepit index ke rentang 0..n, di mana n adalah jumlah item.
 func clampIndex(index, n int) int {
 	if index < 0 {
 		return 0
@@ -228,7 +214,6 @@ func clampIndex(index, n int) int {
 	return index
 }
 
-// sameParent membandingkan induk dengan memperlakukan nil sebagai NULL.
 func sameParent(a, b *string) bool {
 	if a == nil || b == nil {
 		return a == nil && b == nil
@@ -237,7 +222,6 @@ func sameParent(a, b *string) bool {
 	return *a == *b
 }
 
-// Delete menghapus satu menu beserta seluruh submenu di bawahnya.
 func (s *MenuService) Delete(ctx context.Context, id string) error {
 	menu, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -250,7 +234,6 @@ func (s *MenuService) Delete(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, id)
 }
 
-// checkParentExists memastikan menu induk yang dipilih benar-benar ada.
 func (s *MenuService) checkParentExists(ctx context.Context, parentID *string) error {
 	if parentID == nil {
 		return nil
@@ -267,10 +250,9 @@ func (s *MenuService) checkParentExists(ctx context.Context, parentID *string) e
 	return nil
 }
 
-// checkParentAvailable memastikan menu induk ada dan tidak membuat lingkaran.
-//
-// Caranya: telusuri ke atas mulai dari calon induk. Kalau di tengah jalan ketemu
-// id menu yang sedang diedit, berarti calon induk itu ada di bawah menu ini.
+// checkParentAvailable memastikan induk ada dan tidak bikin lingkaran: telusuri
+// ke atas mulai dari calon induk, kalau ketemu id menu yang sedang diedit berarti
+// calon induk itu ada di bawah menu ini.
 func (s *MenuService) checkParentAvailable(ctx context.Context, id string, parentID *string) error {
 	for current := parentID; current != nil; {
 		if *current == id {
@@ -291,8 +273,8 @@ func (s *MenuService) checkParentAvailable(ctx context.Context, id string, paren
 	return nil
 }
 
-// buildTree menyusun daftar menu datar menjadi menu bersarang.
-// Dipisah dari Tree supaya bisa ditest tanpa database.
+// buildTree menyusun daftar menu datar jadi menu bersarang. Dipisah dari Tree
+// supaya bisa ditest tanpa database.
 func buildTree(menus []model.Menu) []*model.MenuNode {
 	nodes := make(map[string]*model.MenuNode, len(menus))
 	for _, menu := range menus {
@@ -304,9 +286,8 @@ func buildTree(menus []model.Menu) []*model.MenuNode {
 	for _, menu := range menus {
 		node := nodes[menu.ID]
 
-		// Menu tanpa induk ditampilkan di level paling atas. Menu yang induknya
-		// tidak ada di daftar juga ikut ditampilkan di atas, supaya tidak hilang
-		// dari response.
+		// Tanpa induk, atau induknya tidak ada di daftar, dua-duanya tampil di
+		// level paling atas supaya tidak hilang dari response.
 		if menu.ParentID == nil {
 			roots = append(roots, node)
 			continue
@@ -325,7 +306,6 @@ func buildTree(menus []model.Menu) []*model.MenuNode {
 	return roots
 }
 
-// sortNodes mengurutkan menu pada setiap level berdasarkan position, lalu id.
 func sortNodes(nodes []*model.MenuNode) {
 	slices.SortFunc(nodes, func(a, b *model.MenuNode) int {
 		if a.Position != b.Position {

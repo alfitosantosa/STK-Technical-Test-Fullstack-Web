@@ -1,8 +1,6 @@
-// Tipe data yang dipakai bersama seluruh aplikasi.
 // Bentuknya mengikuti response API Go di backend/model/menu.go.
 
-// Id menu adalah CUID2 yang dibuat backend (24 karakter, huruf kecil dan angka).
-// Frontend memperlakukannya sebagai teks apa adanya — jangan diubah menjadi angka.
+// CUID2 dari backend (24 karakter). Perlakukan sebagai teks apa adanya.
 export type MenuId = string;
 
 export type Menu = {
@@ -15,7 +13,7 @@ export type Menu = {
   updated_at: string;
 };
 
-// Menu beserta submenu di bawahnya, dari GET /api/menus/tree.
+// Menu + submenu di bawahnya, dari GET /api/menus/tree.
 export type MenuNode = Menu & {
   children: MenuNode[];
 };

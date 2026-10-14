@@ -1,11 +1,9 @@
 import type { Menu, MenuId, MenuNode, MenuPayload, MovePayload } from "@/lib/types";
 
-// Alamat backend Go. Diisi lewat .env.local, ada nilai cadangan supaya
-// development tetap jalan tanpa konfigurasi tambahan.
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
-// ApiError membawa status HTTP supaya komponen bisa membedakan
-// "data tidak ditemukan" dari "server sedang bermasalah".
+// Membawa status HTTP supaya komponen bisa membedakan "data tidak ditemukan"
+// dari "server sedang bermasalah".
 export class ApiError extends Error {
   readonly status: number;
 
@@ -18,8 +16,7 @@ export class ApiError extends Error {
 
 type ValidationDetail = { field: string; rule: string };
 
-// readErrorMessage mengubah body error API menjadi satu kalimat yang bisa
-// langsung ditampilkan ke user.
+// Mengubah body error API jadi satu kalimat yang bisa langsung ditampilkan.
 async function readErrorMessage(response: Response): Promise<string> {
   try {
     const body = await response.json();
@@ -35,7 +32,7 @@ async function readErrorMessage(response: Response): Promise<string> {
       return body.error;
     }
   } catch {
-    // Body bukan JSON, pakai pesan cadangan di bawah.
+    // Body-nya bukan JSON, pakai pesan cadangan di bawah.
   }
 
   return `Permintaan gagal dengan status ${response.status}`;
@@ -50,8 +47,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
   } catch {
-    // fetch hanya gagal begini kalau servernya tidak bisa dihubungi
-    // (belum jalan, port salah, atau koneksi putus).
+    // fetch cuma gagal begini kalau servernya tidak bisa dihubungi (belum jalan,
+    // port salah, atau koneksi putus).
     throw new ApiError(
       `Tidak bisa menghubungi server di ${API_URL}. Pastikan backend sedang berjalan.`,
       0,
@@ -69,7 +66,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-// menuApi adalah satu-satunya tempat yang tahu alamat dan bentuk request API.
 export const menuApi = {
   list: () => request<Menu[]>("/api/menus"),
 

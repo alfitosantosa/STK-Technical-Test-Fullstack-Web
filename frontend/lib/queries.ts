@@ -7,32 +7,28 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { menuApi } from "@/lib/api";
 import type { MenuId, MenuPayload, MovePayload } from "@/lib/types";
 
-// Semua query menu memakai key ini, jadi satu invalidate sudah cukup untuk
-// menyegarkan seluruh tampilan (tree, sidebar, dan form) setelah data berubah.
+// Satu key untuk semua query menu, jadi satu invalidate cukup buat menyegarkan
+// seluruh tampilan (tree, sidebar, form) setelah data berubah.
 export const menuKeys = {
   all: ["menus"] as const,
   tree: () => [...menuKeys.all, "tree"] as const,
 };
 
-// useMenuTree mengambil menu bersarang.
-// Sidebar dan halaman memakai hook yang sama, jadi requestnya otomatis
-// diambil dari cache yang sama (React Query yang mengurus).
+// Dipakai sidebar dan halaman sekaligus, jadi requestnya berbagi cache yang sama.
 export function useMenuTree() {
   const hydrated = useHydrated();
 
   const query = useQuery({
     queryKey: menuKeys.tree(),
     queryFn: menuApi.tree,
-    // Data ini hanya berubah lewat aplikasi ini sendiri, jadi 30 detik
-    // cukup untuk menahan refetch yang tidak perlu.
+    // Data cuma berubah lewat aplikasi ini sendiri, jadi 30 detik cukup buat
+    // menahan refetch yang tidak perlu.
     staleTime: 30_000,
   });
 
   // Server tidak punya cache React Query, jadi HTML dari server selalu berisi
-  // keadaan "sedang memuat". Render pertama di klien harus sama persis; kalau
-  // cache sudah terisi sebelum hydration selesai (misalnya query ini dipakai
-  // komponen lain yang di-hydrate lebih dulu), hasilnya berbeda dan React
-  // membuang HTML server. Data baru dipakai setelah hydration selesai.
+  // keadaan "sedang memuat". Render pertama klien harus sama persis; kalau cache
+  // sudah terisi sebelum hydration selesai, React akan membuang HTML server.
   if (hydrated) {
     return query;
   }
@@ -48,9 +44,8 @@ export function useMenuTree() {
   };
 }
 
-// useMenuMutations mengumpulkan semua aksi yang mengubah data.
-// Setiap aksi menyegarkan cache dan menampilkan notifikasi di satu tempat,
-// supaya komponen tidak perlu mengulang keduanya.
+// Semua aksi yang mengubah data. Refresh cache dan notifikasinya dikumpulkan di
+// sini biar komponen tidak mengulang keduanya.
 export function useMenuMutations() {
   const queryClient = useQueryClient();
 
@@ -95,8 +90,8 @@ export function useMenuMutations() {
       void refreshMenus();
     },
     onError: (error) => {
-      // Kalau server menolak (misalnya memindah menu ke dalam submenu-nya
-      // sendiri), tampilkan alasan aslinya.
+      // Server menolak (misalnya pindah ke dalam submenu sendiri): tampilkan
+      // alasan aslinya.
       toast.error(error.message);
       void refreshMenus();
     },

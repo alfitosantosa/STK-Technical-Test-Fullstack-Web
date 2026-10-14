@@ -4,9 +4,8 @@ import { create } from "zustand";
 
 import type { MenuId } from "@/lib/types";
 
-// State UI murni: apa yang sedang dibuka dan dipilih di layar.
-// Data menu sendiri tidak disimpan di sini — itu urusan React Query,
-// supaya tidak ada dua sumber data yang bisa berbeda isi.
+// State UI murni: apa yang sedang dibuka dan dipilih. Data menunya ada di React
+// Query, supaya tidak ada dua sumber data yang bisa berbeda isi.
 type MenuStore = {
   selectedId: MenuId | null;
   expandedIds: MenuId[];
@@ -26,8 +25,6 @@ export const useMenuStore = create<MenuStore>((set) => ({
   expandedIds: [],
   keyword: "",
   rootId: null,
-  // Panel detail tampil secara bawaan; checkbox di toolbar bisa
-  // menyembunyikannya supaya daftar menu dapat ruang lebih luas.
   showDetail: true,
 
   select: (id) => set({ selectedId: id }),

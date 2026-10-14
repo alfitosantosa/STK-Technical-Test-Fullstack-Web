@@ -6,18 +6,13 @@ import Link from "next/link";
 import type { MenuNode } from "@/lib/types";
 
 type MenuBreadcrumbProps = {
-  // Jalur dari menu teratas sampai menu yang sedang dibuka.
-  // Kosong berarti datanya belum siap atau menunya tidak ada.
+  // Jalur dari menu teratas sampai menu yang sedang dibuka; kosong berarti
+  // datanya belum siap atau menunya tidak ada.
   path: MenuNode[];
 };
 
-// MenuBreadcrumb menunjukkan posisi menu yang sedang dibuka di dalam hierarki:
-// Menus / induk / ... / menu itu sendiri.
-//
-// Karena breadcrumb ini menggantikan judul halaman, menu yang sedang dibuka
-// dibuat sama dengan judul di "/" (tebal, 2xl, primary) dan sekaligus menjadi
-// <h1> halaman; leluhurnya memakai warna redup yang sama dengan label lain
-// supaya yang menonjol tetap menu yang sedang dibuka.
+// Breadcrumb ini menggantikan judul halaman, jadi menu yang sedang dibuka dibuat
+// sama dengan judul di "/" sekaligus jadi <h1>, leluhurnya dibikin redup.
 export function MenuBreadcrumb({ path }: MenuBreadcrumbProps) {
   const currentId = path.at(-1)?.id ?? null;
 

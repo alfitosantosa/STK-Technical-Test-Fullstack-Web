@@ -1,10 +1,8 @@
 import type { MenuId, MenuNode } from "@/lib/types";
 
-// Kumpulan fungsi murni untuk mengolah menu bersarang.
-// Semuanya tidak menyentuh React, jadi gampang ditest dan dipakai ulang
-// oleh tree, sidebar, maupun form.
+// Fungsi murni di file ini tidak menyentuh React, jadi gampang ditest dan dipakai
+// ulang oleh tree, sidebar, maupun form.
 
-// findNode mencari satu menu berdasarkan id di seluruh kedalaman tree.
 export function findNode(nodes: MenuNode[], id: MenuId | null): MenuNode | null {
   if (id === null) {
     return null;
@@ -24,8 +22,7 @@ export function findNode(nodes: MenuNode[], id: MenuId | null): MenuNode | null 
   return null;
 }
 
-// findParent mencari menu induk dari sebuah id.
-// Mengembalikan null kalau id tersebut adalah menu level paling atas.
+// Induk dari id; null kalau id-nya menu level paling atas.
 export function findParent(nodes: MenuNode[], id: MenuId): MenuNode | null {
   for (const node of nodes) {
     if (node.children.some((child) => child.id === id)) {
@@ -41,11 +38,11 @@ export function findParent(nodes: MenuNode[], id: MenuId): MenuNode | null {
   return null;
 }
 
-// siblingNodes mengembalikan daftar saudara yang memuat id tersebut.
-// Kalau id berada di level paling atas, hasilnya adalah daftar root itu sendiri.
+// Daftar saudara yang memuat id; kalau id-nya di level paling atas, hasilnya
+// daftar root itu sendiri.
 //
-// Dipakai drag and drop: urutan disisipkan dihitung dari daftar ini setelah
-// menu yang dipindah dikeluarkan, supaya indeksnya tidak bergeser.
+// Dipakai drag and drop: urutan sisip dihitung dari daftar ini setelah menu yang
+// dipindah dikeluarkan, supaya indeksnya tidak bergeser.
 export function siblingNodes(nodes: MenuNode[], id: MenuId): MenuNode[] {
   if (nodes.some((node) => node.id === id)) {
     return nodes;
@@ -61,8 +58,7 @@ export function siblingNodes(nodes: MenuNode[], id: MenuId): MenuNode[] {
   return [];
 }
 
-// flattenTree mengubah menu bersarang menjadi daftar rata beserta levelnya.
-// Dipakai dropdown pemilih induk dan penampilan kolom Depth.
+// Menu bersarang jadi daftar rata + depth-nya (buat dropdown induk dan kolom Depth).
 export function flattenTree(
   nodes: MenuNode[],
   depth = 0,
@@ -73,8 +69,7 @@ export function flattenTree(
   ]);
 }
 
-// collectIds mengumpulkan seluruh id menu, atau hanya yang punya submenu
-// (dipakai tombol Expand All / Collapse All).
+// Semua id, atau cuma yang punya submenu (buat tombol Expand/Collapse All).
 export function collectIds(nodes: MenuNode[], onlyWithChildren = false): MenuId[] {
   return nodes.flatMap((node) => [
     ...(onlyWithChildren && node.children.length === 0 ? [] : [node.id]),
@@ -82,9 +77,8 @@ export function collectIds(nodes: MenuNode[], onlyWithChildren = false): MenuId[
   ]);
 }
 
-// filterTree menyaring menu berdasarkan nama.
-// Menu yang cocok tetap ditampilkan bersama seluruh induknya, supaya
-// hierarkinya tidak terputus saat difilter.
+// Saring per nama; menu yang cocok tetap tampil bareng semua induknya supaya
+// hierarkinya tidak terputus.
 export function filterTree(nodes: MenuNode[], keyword: string): MenuNode[] {
   const needle = keyword.trim().toLowerCase();
   if (needle === "") {
@@ -103,7 +97,6 @@ export function filterTree(nodes: MenuNode[], keyword: string): MenuNode[] {
   });
 }
 
-// isDescendant mengecek apakah candidateId berada di dalam subtree root.
 // Dipakai drag and drop: menu tidak boleh dipindah ke dalam submenu-nya sendiri.
 export function isDescendant(root: MenuNode, candidateId: MenuId): boolean {
   return root.children.some(
@@ -111,11 +104,8 @@ export function isDescendant(root: MenuNode, candidateId: MenuId): boolean {
   );
 }
 
-// menuPath mengembalikan jalur dari menu teratas sampai menu dengan id tersebut
-// (akar dulu, menu itu sendiri di akhir).
-//
-// Dipakai breadcrumb untuk menunjukkan posisi menu: hasilnya kosong kalau id
-// tersebut tidak ada di tree.
+// Jalur dari menu teratas sampai id ini (akar di depan, menunya di akhir).
+// Dipakai breadcrumb; kosong kalau id-nya tidak ada di tree.
 export function menuPath(nodes: MenuNode[], id: MenuId): MenuNode[] {
   const node = findNode(nodes, id);
 

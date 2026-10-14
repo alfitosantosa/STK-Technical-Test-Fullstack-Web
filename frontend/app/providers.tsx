@@ -5,9 +5,9 @@ import type { ReactNode } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
 
-// QueryClient di browser dipakai ulang supaya cache tidak hilang saat
-// halaman dirender ulang. Di server, tiap render dapat client baru supaya
-// cache antar request tidak saling bocor.
+// Di browser, QueryClient dipakai ulang supaya cache tidak hilang saat halaman
+// dirender ulang. Di server tiap render dapat client baru supaya cache antar
+// request tidak saling bocor.
 let browserQueryClient: QueryClient | undefined;
 
 function getQueryClient() {
@@ -24,7 +24,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={getQueryClient()}>
       {children}
       {/* Aplikasi ini tidak punya mode gelap, jadi notifikasi dikunci terang
-          supaya tidak ikut gelap saat sistem operasi user memakai dark mode. */}
+          supaya tidak ikut gelap saat OS user pakai dark mode. */}
       <Toaster position="top-right" theme="light" />
     </QueryClientProvider>
   );

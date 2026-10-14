@@ -129,10 +129,8 @@
   }
 }
 
-/* Warna mengikuti mockup: sidebar biru gelap dengan item aktif biru terang,
-   dan biru yang sama dipakai untuk tombol utama serta teks aktif.
-   Blok ini sengaja diletakkan di akhir file supaya menimpa nilai dasar tema
-   tanpa perlu mengubahnya satu per satu di atas. */
+/* Warna dari mockup: sidebar biru gelap, item aktif biru terang, dan biru yang
+   sama buat tombol utama. Ditaruh di akhir file supaya menimpa tema dasar di atas. */
 :root {
   --primary: #2b5ce6;
   --primary-foreground: #ffffff;

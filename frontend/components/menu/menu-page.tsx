@@ -11,12 +11,8 @@ import { useMenuTree } from "@/lib/queries";
 import { filterTree } from "@/lib/tree";
 import { useMenuStore } from "@/stores/menu-store";
 
-// MenuPage menyusun halaman pengelolaan menu:
-// toolbar di atas, tree di kiri, panel detail di kanan
-// (di layar kecil panel detail menempel di bawah).
-//
-// `heading` hanya dipakai halaman /menus/<id> untuk menaruh breadcrumb sebagai
-// judul; halaman "/" memakai judul bawaan dari MenuToolbar.
+// `heading` cuma dipakai halaman /menus/<id> buat naruh breadcrumb sebagai judul;
+// halaman "/" memakai judul bawaan dari MenuToolbar.
 export function MenuPage({ heading }: { heading?: ReactNode }) {
   const { data: roots, isPending, error, refetch } = useMenuTree();
   const rootId = useMenuStore((state) => state.rootId);
@@ -37,17 +33,15 @@ export function MenuPage({ heading }: { heading?: ReactNode }) {
     }
   }, [rootId, tree, setRootId]);
 
-  // Belum ada menu yang dipilih: pakai menu teratas supaya panel detail terisi.
   useEffect(() => {
     if (selectedId === null && visibleRoot) {
       select(visibleRoot.id);
     }
   }, [selectedId, visibleRoot, select]);
 
-  // Hasil penyaringan dihitung ulang hanya saat tree atau kata kunci berubah,
-  // bukan setiap kali komponen ini render.
-  // ponytail: seluruh baris yang terbuka dirender sekaligus. Kalau nanti ada
-  // ribuan menu, ganti dengan virtualisasi daftar.
+  // Penyaringan cuma dihitung ulang saat tree atau kata kunci berubah.
+  // Semua baris yang terbuka dirender sekaligus; perlu virtualisasi kalau jumlah
+  // menunya sudah ribuan.
   const nodes = useMemo(
     () => (visibleRoot ? filterTree([visibleRoot], keyword) : []),
     [visibleRoot, keyword],

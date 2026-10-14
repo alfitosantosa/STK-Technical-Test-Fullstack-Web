@@ -12,9 +12,8 @@ import { menuFormSchema, type MenuFormValues } from "@/lib/schemas";
 import { findNode, findParent, flattenTree } from "@/lib/tree";
 import { useMenuStore } from "@/stores/menu-store";
 
-// MenuDetailForm menampilkan dan mengubah menu yang sedang dipilih.
-// Menambah menu dilakukan lewat dialog terpisah (AddMenuDialog), sedangkan
-// memindahkan menu dilakukan lewat drag and drop di tree.
+// Menampilkan dan mengubah menu yang sedang dipilih. Menambah menu lewat dialog
+// terpisah (AddMenuDialog), memindahkan menu lewat drag and drop di tree.
 export function MenuDetailForm() {
   const { data: roots } = useMenuTree();
   const selectedId = useMenuStore((state) => state.selectedId);
@@ -30,8 +29,8 @@ export function MenuDetailForm() {
 
   const form = useForm<MenuFormValues>({
     resolver: zodResolver(menuFormSchema),
-    // `values` membuat form ikut berubah saat menu yang dipilih berganti,
-    // tanpa perlu effect reset manual.
+    // `values` bikin form ikut berubah saat menu yang dipilih berganti, tanpa
+    // perlu effect reset manual.
     values: {
       name: selected?.name ?? "",
       url: selected?.url ?? "",
@@ -69,8 +68,8 @@ export function MenuDetailForm() {
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
       <h2 className="text-lg font-semibold">Detail Menu</h2>
 
-      {/* Menu ID ditampilkan sebagai teks abu-abu, mengikuti mockup:
-          nilainya dibuat backend dan tidak pernah diubah dari sini. */}
+      {/* Menu ID tampil sebagai teks abu-abu (mengikuti mockup): nilainya dibuat
+          backend dan tidak pernah diubah dari sini. */}
       <Field>
         <FieldLabel>Menu ID</FieldLabel>
         <p className="truncate text-sm text-muted-foreground">{selected.id}</p>

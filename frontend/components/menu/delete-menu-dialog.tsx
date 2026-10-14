@@ -16,10 +16,8 @@ import { useMenuMutations } from "@/lib/queries";
 import type { MenuNode } from "@/lib/types";
 import { useMenuStore } from "@/stores/menu-store";
 
-// DeleteMenuDialog meminta konfirmasi sebelum menghapus menu.
-//
-// Konfirmasi ini penting karena hapus di backend bersifat cascade:
-// seluruh submenu di bawah menu yang dihapus ikut terhapus.
+// Konfirmasi sebelum hapus: hapus di backend bersifat cascade, jadi seluruh
+// submenu di bawah menu ini ikut terhapus.
 export function DeleteMenuDialog({ menu }: { menu: MenuNode }) {
   const { remove } = useMenuMutations();
   const select = useMenuStore((state) => state.select);
