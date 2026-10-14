@@ -1,9 +1,9 @@
 """Mengirim data menu dari folder seed/ ke API.
 
 Cara pakai:
-    python3 seed/push.py                                  # menus.json ke http://localhost:8080
-    python3 seed/push.py --url http://localhost:4000       # server di port lain
-    python3 seed/push.py --file menus-mockup.json          # pakai data lain
+    python3 seed/push.py                                  # menus.json ke http://localhost:4000
+    python3 seed/push.py --url http://localhost:8080       # server di port lain
+    python3 seed/push.py --file menus-dari-brief.json       # pakai data lain
 
 Field "parent" pada file JSON diisi nama menu induk, bukan id, karena id baru
 diketahui setelah parent-nya dibuat. Urutan di dalam file harus parent dulu,
@@ -34,7 +34,7 @@ def post_menu(base_url, payload):
 
 def main():
     parser = argparse.ArgumentParser(description="Kirim data menu ke API.")
-    parser.add_argument("--url", default="http://localhost:8080", help="alamat server")
+    parser.add_argument("--url", default="http://localhost:4000", help="alamat server")
     parser.add_argument("--file", default="menus.json", help="nama file di folder seed/")
     args = parser.parse_args()
 

@@ -22,7 +22,7 @@ func Load() *Config {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		Port:        getEnv("PORT", "3000"),
+		Port:        getEnv("PORT", "4000"),
 		DatabaseURL: os.Getenv("DATABASE_URL"),
 	}
 

@@ -39,10 +39,12 @@ func (r *MenuRepository) FindAll(ctx context.Context) ([]model.Menu, error) {
 //
 // Mengembalikan (nil, nil) kalau menu tidak ada, supaya layer lain tidak perlu
 // tahu error khas GORM (gorm.ErrRecordNotFound).
-func (r *MenuRepository) FindByID(ctx context.Context, id int64) (*model.Menu, error) {
+func (r *MenuRepository) FindByID(ctx context.Context, id string) (*model.Menu, error) {
 	var menu model.Menu
 
-	err := r.db.WithContext(ctx).First(&menu, id).Error
+	// Primary key-nya string, jadi id tidak bisa dikirim sebagai argumen kedua
+	// First (GORM akan menganggapnya potongan SQL). Selalu lewat Where.
+	err := r.db.WithContext(ctx).Where("id = ?", id).First(&menu).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -53,7 +55,8 @@ func (r *MenuRepository) FindByID(ctx context.Context, id int64) (*model.Menu, e
 	return &menu, nil
 }
 
-// Create menyimpan menu baru. ID dan timestamp diisi oleh database.
+// Create menyimpan menu baru. ID dibuat aplikasi (lihat service.Create),
+// timestamp diisi oleh database.
 func (r *MenuRepository) Create(ctx context.Context, menu *model.Menu) error {
 	return r.db.WithContext(ctx).Create(menu).Error
 }
@@ -65,14 +68,16 @@ func (r *MenuRepository) Update(ctx context.Context, menu *model.Menu) error {
 
 // Delete menghapus satu menu. Submenu di bawahnya ikut terhapus lewat
 // ON DELETE CASCADE pada tabel menus.
-func (r *MenuRepository) Delete(ctx context.Context, id int64) error {
-	return r.db.WithContext(ctx).Delete(&model.Menu{}, id).Error
+func (r *MenuRepository) Delete(ctx context.Context, id string) error {
+	// Sengaja memakai Where, bukan argumen kedua Delete: primary key string
+	// akan dibaca GORM sebagai potongan SQL, bukan nilai id.
+	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Menu{}).Error
 }
 
 // LastPosition mengembalikan posisi terbesar di antara menu yang induknya sama.
 // Dipakai untuk menaruh menu baru di urutan paling akhir.
 // Kalau belum ada menu lain, hasilnya -1 supaya menu pertama mendapat posisi 0.
-func (r *MenuRepository) LastPosition(ctx context.Context, parentID *int64) (int, error) {
+func (r *MenuRepository) LastPosition(ctx context.Context, parentID *string) (int, error) {
 	// parentID dikirim lewat interface{} supaya nil menjadi NULL di SQL.
 	var parent any
 	if parentID != nil {
@@ -107,7 +112,7 @@ func (r *MenuRepository) Transaction(ctx context.Context, fn func(txRepo *MenuRe
 //
 // excludeID dipakai saat memindahkan menu: menu yang dipindah tidak ikut
 // dihitung sebagai saudara, karena posisinya yang sedang direncanakan.
-func (r *MenuRepository) FindSiblings(ctx context.Context, parentID *int64, excludeID int64) ([]model.Menu, error) {
+func (r *MenuRepository) FindSiblings(ctx context.Context, parentID *string, excludeID string) ([]model.Menu, error) {
 	// parentID dikirim lewat interface{} supaya nil menjadi NULL di SQL.
 	var parent any
 	if parentID != nil {
@@ -132,7 +137,7 @@ func (r *MenuRepository) FindSiblings(ctx context.Context, parentID *int64, excl
 //
 // Sengaja memakai map, bukan Save, supaya kolom lain (name, url) tidak ikut
 // tertulis kalau ada perubahan yang belum tersimpan di struct pemanggil.
-func (r *MenuRepository) UpdateParentAndPosition(ctx context.Context, id int64, parentID *int64, position int) error {
+func (r *MenuRepository) UpdateParentAndPosition(ctx context.Context, id string, parentID *string, position int) error {
 	// parentID dikirim lewat interface{} supaya nil menjadi NULL di SQL.
 	var parent any
 	if parentID != nil {

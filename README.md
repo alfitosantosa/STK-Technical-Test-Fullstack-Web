@@ -34,9 +34,13 @@ Repo ini berisi dua aplikasi:
 
 ## Tangkapan layar
 
-| Halaman menu (desktop, 1440x900) | Panel detail (mobile, 390x844) | Sidebar (mobile) |
-| --- | --- | --- |
-| ![Halaman menu di desktop](docs/screenshots/desktop.png) | ![Tree dan panel detail di mobile](docs/screenshots/mobile-detail.png) | ![Sidebar sebagai panel geser di mobile](docs/screenshots/mobile-sidebar.png) |
+| Halaman menu (desktop, 1440x900) | Dialog tambah menu |
+| --- | --- |
+| ![Halaman menu di desktop](docs/screenshots/desktop.png) | ![Dialog tambah menu](docs/screenshots/add-dialog.png) |
+
+| Panel detail (mobile, 390x844) | Sidebar (mobile) |
+| --- | --- |
+| ![Tree dan panel detail di mobile](docs/screenshots/mobile-detail.png) | ![Sidebar sebagai panel geser di mobile](docs/screenshots/mobile-sidebar.png) |
 
 ## Menjalankan
 
@@ -82,7 +86,7 @@ Isi data contoh (opsional):
 ```bash
 cd backend
 python3 seed/push.py --url http://localhost:4000
-python3 seed/push.py --url http://localhost:4000 --file menus-mockup.json
+python3 seed/push.py --url http://localhost:4000 --file menus-dari-brief.json
 ```
 
 ## Menjalankan dengan Docker
@@ -181,8 +185,8 @@ Satu tabel `menus` dengan relasi ke dirinya sendiri:
 
 | Kolom | Tipe | Keterangan |
 | --- | --- | --- |
-| `id` | BIGSERIAL | Primary key |
-| `parent_id` | BIGINT NULL | Induk menu; `NULL` berarti level paling atas |
+| `id` | TEXT | Primary key berupa CUID2 (24 karakter) yang dibuat aplikasi saat menambah menu |
+| `parent_id` | TEXT NULL | Induk menu; `NULL` berarti level paling atas |
 | `name` | VARCHAR(100) | Nama menu |
 | `url` | VARCHAR(255) | Tujuan menu |
 | `position` | INTEGER | Urutan tampil di antara menu dengan induk yang sama |
@@ -219,6 +223,10 @@ belum ada.
 
 ## Keputusan teknis
 
+- **Id menu berupa CUID2, dibuat aplikasi** (`github.com/nrednav/cuid2`), bukan angka
+  berurut dari database. Id jadi aman ditampilkan di URL dan tidak membocorkan jumlah
+  data. Karena id dibuat aplikasi, tabel `menus` dibuat ulang pada migration 0002
+  (id `TEXT`), dan frontend memperlakukan id sebagai teks apa adanya.
 - **Layer backend**: `route` (HTTP) → `service` (aturan bisnis) → `repository` (query).
   Hanya `repository` yang menyentuh GORM.
 - **Schema dari file SQL, bukan AutoMigrate.** GORM dipakai untuk query; struktur tabel

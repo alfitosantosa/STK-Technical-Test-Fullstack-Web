@@ -13,9 +13,9 @@ import (
 // sibling pada model.Menu dipakai apa adanya; parent_id nil berarti level atas.
 func TestPlanPositions(t *testing.T) {
 	siblings := []model.Menu{
-		{ID: 1, Name: "Satu", Position: 0},
-		{ID: 2, Name: "Dua", Position: 1},
-		{ID: 3, Name: "Tiga", Position: 2},
+		{ID: "m1", Name: "Satu", Position: 0},
+		{ID: "m2", Name: "Dua", Position: 1},
+		{ID: "m3", Name: "Tiga", Position: 2},
 	}
 
 	tests := []struct {
@@ -55,10 +55,10 @@ func TestPlanPositions(t *testing.T) {
 
 			for i, menu := range planned {
 				if menu.ID != siblings[i].ID {
-					t.Errorf("urutan sibling ke-%d = id %d, mau id %d", i, menu.ID, siblings[i].ID)
+					t.Errorf("urutan sibling ke-%d = id %s, mau id %s", i, menu.ID, siblings[i].ID)
 				}
 				if menu.Position != tt.want[i] {
-					t.Errorf("posisi id %d = %d, mau %d", menu.ID, menu.Position, tt.want[i])
+					t.Errorf("posisi id %s = %d, mau %d", menu.ID, menu.Position, tt.want[i])
 				}
 			}
 		})
@@ -69,9 +69,9 @@ func TestPlanPositions(t *testing.T) {
 // posisi kembar dan tidak ada angka yang bolong.
 func TestPlanPositionsRapatTanpaDuplikat(t *testing.T) {
 	siblings := []model.Menu{
-		{ID: 1, Position: 0},
-		{ID: 2, Position: 5},
-		{ID: 3, Position: 9},
+		{ID: "m1", Position: 0},
+		{ID: "m2", Position: 5},
+		{ID: "m3", Position: 9},
 	}
 
 	planned := planPositions(siblings, 2)

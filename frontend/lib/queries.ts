@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { menuApi } from "@/lib/api";
-import type { MenuPayload, MovePayload } from "@/lib/types";
+import type { MenuId, MenuPayload, MovePayload } from "@/lib/types";
 
 // Semua query menu memakai key ini, jadi satu invalidate sudah cukup untuk
 // menyegarkan seluruh tampilan (tree, sidebar, dan form) setelah data berubah.
@@ -47,7 +47,7 @@ export function useMenuMutations() {
   });
 
   const update = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: MenuPayload }) =>
+    mutationFn: ({ id, payload }: { id: MenuId; payload: MenuPayload }) =>
       menuApi.update(id, payload),
     onSuccess: (menu) => {
       toast.success(`Menu "${menu.name}" disimpan`);
@@ -57,7 +57,7 @@ export function useMenuMutations() {
   });
 
   const remove = useMutation({
-    mutationFn: (id: number) => menuApi.remove(id),
+    mutationFn: (id: MenuId) => menuApi.remove(id),
     onSuccess: () => {
       toast.success("Menu dihapus");
       void refreshMenus();
@@ -66,7 +66,7 @@ export function useMenuMutations() {
   });
 
   const move = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: MovePayload }) =>
+    mutationFn: ({ id, payload }: { id: MenuId; payload: MovePayload }) =>
       menuApi.move(id, payload),
     onSuccess: () => {
       toast.success("Urutan menu diperbarui");

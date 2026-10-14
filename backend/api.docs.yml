@@ -8,7 +8,7 @@ info:
     `parent_id` bernilai null berarti menu berada di level paling atas.
   version: 1.0.0
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:4000
     description: Development
 tags:
   - name: Menu
@@ -68,11 +68,11 @@ paths:
                   name: Dashboard
                   url: /dashboard
               submenu:
-                summary: Submenu dari menu dengan id 1
+                summary: Submenu dari menu nay7nt4s8g4zz81r6d9xp4w8
                 value:
                   name: Laporan Penjualan
                   url: /reports/sales
-                  parent_id: 1
+                  parent_id: nay7nt4s8g4zz81r6d9xp4w8
       responses:
         "201":
           description: Menu berhasil dibuat
@@ -218,14 +218,14 @@ paths:
                 value:
                   parent_id: null
               pindahKeIndukLain:
-                summary: Pindah jadi submenu id 1, disisipkan di urutan paling atas
+                summary: Pindah jadi submenu nay7nt4s8g4zz81r6d9xp4w8, disisipkan di urutan paling atas
                 value:
-                  parent_id: 1
+                  parent_id: nay7nt4s8g4zz81r6d9xp4w8
                   position: 0
               reorderDalamSatuLevel:
                 summary: Tetap di induk yang sama, naik ke urutan paling atas
                 value:
-                  parent_id: 1
+                  parent_id: nay7nt4s8g4zz81r6d9xp4w8
                   position: 0
       responses:
         "200":
@@ -247,25 +247,23 @@ components:
       name: id
       in: path
       required: true
-      description: ID menu
+      description: ID menu (CUID2)
       schema:
-        type: integer
-        format: int64
-        example: 1
+        type: string
+        example: nay7nt4s8g4zz81r6d9xp4w8
 
   schemas:
     Menu:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          example: 1
+          type: string
+          description: ID menu, CUID2 yang dibuat server saat menu ditambahkan.
+          example: nay7nt4s8g4zz81r6d9xp4w8
         parent_id:
-          type: integer
-          format: int64
+          type: string
           nullable: true
-          description: ID menu induk. Null berarti menu level paling atas.
+          description: ID menu induk (CUID2). Null berarti menu level paling atas.
           example: null
         name:
           type: string
@@ -311,11 +309,11 @@ components:
           description: Tujuan menu, boleh path relatif atau URL lengkap.
           example: /reports/sales
         parent_id:
-          type: integer
-          format: int64
+          type: string
           nullable: true
           description: |
-            ID menu induk. Null atau tidak dikirim berarti menu level paling atas.
+            ID menu induk (CUID2). Null atau tidak dikirim berarti menu level paling atas.
+          example: nay7nt4s8g4zz81r6d9xp4w8
         position:
           type: integer
           minimum: 0
@@ -329,13 +327,13 @@ components:
         Body untuk memindahkan atau mengurutkan ulang menu. Semua field opsional.
       properties:
         parent_id:
-          type: integer
-          format: int64
+          type: string
           nullable: true
           description: |
-            ID induk tujuan. Null atau tidak dikirim berarti menu dipindah ke
-            level paling atas. Induk harus ada, dan tidak boleh menu itu sendiri
+            ID induk tujuan (CUID2). Null atau tidak dikirim berarti menu dipindah
+            ke level paling atas. Induk harus ada, dan tidak boleh menu itu sendiri
             atau submenu di bawahnya (dibalas 400).
+          example: nay7nt4s8g4zz81r6d9xp4w8
         position:
           type: integer
           minimum: 0

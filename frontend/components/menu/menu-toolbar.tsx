@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
+
 import { Grid2x2Icon, PlusIcon, SearchIcon } from "lucide-react";
 
+import { AddMenuDialog } from "@/components/menu/add-menu-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -26,44 +29,38 @@ type MenuToolbarProps = {
 // MenuToolbar berisi judul halaman, pemilih menu teratas, tombol
 // Expand/Collapse All, pencarian, dan tombol tambah menu.
 export function MenuToolbar({ roots, visibleRoot }: MenuToolbarProps) {
-  const selectedId = useMenuStore((state) => state.selectedId);
-  const select = useMenuStore((state) => state.select);
   const rootId = useMenuStore((state) => state.rootId);
   const setRootId = useMenuStore((state) => state.setRootId);
   const setExpanded = useMenuStore((state) => state.setExpanded);
   const keyword = useMenuStore((state) => state.keyword);
   const setKeyword = useMenuStore((state) => state.setKeyword);
-  const startCreate = useMenuStore((state) => state.startCreate);
   const showDetail = useMenuStore((state) => state.showDetail);
   const toggleDetail = useMenuStore((state) => state.toggleDetail);
 
+  // Dialog form menu baru dibuka dari tombol Tambah.
+  const [dialogTambahTerbuka, setDialogTambahTerbuka] = useState(false);
+
   // base-ui Select memakai peta nilai -> label untuk menampilkan pilihan terpilih.
   const rootItems = Object.fromEntries(
-    roots.map((root) => [String(root.id), root.name]),
+    roots.map((root) => [root.id, root.name]),
   );
-
-  const addMenu = () => {
-    // Menu baru ditaruh sebagai submenu dari menu yang sedang dipilih.
-    // Kalau belum ada yang dipilih, menu dibuat di level paling atas.
-    select(selectedId);
-    startCreate();
-  };
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Checkbox dari mockup. Fungsinya menyembunyikan panel detail supaya
-          daftar menu dapat ruang lebih luas, terutama di layar kecil. */}
+      {/* Checkbox dari mockup. Visualnya mengikuti mockup (caption kecil "Menus"),
+          sedangkan nama aksesibelnya menjelaskan fungsinya. */}
       <div className="flex items-center gap-2">
         <Checkbox
           id="toggle-detail"
           checked={showDetail}
           onCheckedChange={toggleDetail}
+          aria-label="Tampilkan panel detail"
         />
         <label
           htmlFor="toggle-detail"
           className="text-sm text-muted-foreground select-none"
         >
-          Tampilkan panel detail
+          Menus
         </label>
       </div>
 
@@ -84,17 +81,15 @@ export function MenuToolbar({ roots, visibleRoot }: MenuToolbarProps) {
           </label>
           <Select
             items={rootItems}
-            value={rootId === null ? null : String(rootId)}
-            onValueChange={(value) =>
-              setRootId(value === null ? null : Number(value))
-            }
+            value={rootId}
+            onValueChange={(value) => setRootId(value)}
           >
             <SelectTrigger id="menu-root" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {roots.map((root) => (
-                <SelectItem key={root.id} value={String(root.id)}>
+                <SelectItem key={root.id} value={root.id}>
                   {root.name}
                 </SelectItem>
               ))}
@@ -134,11 +129,16 @@ export function MenuToolbar({ roots, visibleRoot }: MenuToolbarProps) {
           />
         </div>
 
-        <Button type="button" onClick={addMenu}>
+        <Button type="button" onClick={() => setDialogTambahTerbuka(true)}>
           <PlusIcon />
           Tambah
         </Button>
       </div>
+
+      <AddMenuDialog
+        open={dialogTambahTerbuka}
+        onOpenChange={setDialogTambahTerbuka}
+      />
     </div>
   );
 }

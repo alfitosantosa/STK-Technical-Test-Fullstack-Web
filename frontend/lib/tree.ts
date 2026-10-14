@@ -1,11 +1,11 @@
-import type { MenuNode } from "@/lib/types";
+import type { MenuId, MenuNode } from "@/lib/types";
 
 // Kumpulan fungsi murni untuk mengolah menu bersarang.
 // Semuanya tidak menyentuh React, jadi gampang ditest dan dipakai ulang
 // oleh tree, sidebar, maupun form.
 
 // findNode mencari satu menu berdasarkan id di seluruh kedalaman tree.
-export function findNode(nodes: MenuNode[], id: number | null): MenuNode | null {
+export function findNode(nodes: MenuNode[], id: MenuId | null): MenuNode | null {
   if (id === null) {
     return null;
   }
@@ -26,7 +26,7 @@ export function findNode(nodes: MenuNode[], id: number | null): MenuNode | null 
 
 // findParent mencari menu induk dari sebuah id.
 // Mengembalikan null kalau id tersebut adalah menu level paling atas.
-export function findParent(nodes: MenuNode[], id: number): MenuNode | null {
+export function findParent(nodes: MenuNode[], id: MenuId): MenuNode | null {
   for (const node of nodes) {
     if (node.children.some((child) => child.id === id)) {
       return node;
@@ -46,7 +46,7 @@ export function findParent(nodes: MenuNode[], id: number): MenuNode | null {
 //
 // Dipakai drag and drop: urutan disisipkan dihitung dari daftar ini setelah
 // menu yang dipindah dikeluarkan, supaya indeksnya tidak bergeser.
-export function siblingNodes(nodes: MenuNode[], id: number): MenuNode[] {
+export function siblingNodes(nodes: MenuNode[], id: MenuId): MenuNode[] {
   if (nodes.some((node) => node.id === id)) {
     return nodes;
   }
@@ -75,7 +75,7 @@ export function flattenTree(
 
 // collectIds mengumpulkan seluruh id menu, atau hanya yang punya submenu
 // (dipakai tombol Expand All / Collapse All).
-export function collectIds(nodes: MenuNode[], onlyWithChildren = false): number[] {
+export function collectIds(nodes: MenuNode[], onlyWithChildren = false): MenuId[] {
   return nodes.flatMap((node) => [
     ...(onlyWithChildren && node.children.length === 0 ? [] : [node.id]),
     ...collectIds(node.children, onlyWithChildren),
@@ -105,7 +105,7 @@ export function filterTree(nodes: MenuNode[], keyword: string): MenuNode[] {
 
 // isDescendant mengecek apakah candidateId berada di dalam subtree root.
 // Dipakai drag and drop: menu tidak boleh dipindah ke dalam submenu-nya sendiri.
-export function isDescendant(root: MenuNode, candidateId: number): boolean {
+export function isDescendant(root: MenuNode, candidateId: MenuId): boolean {
   return root.children.some(
     (child) => child.id === candidateId || isDescendant(child, candidateId),
   );

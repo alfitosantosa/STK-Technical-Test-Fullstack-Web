@@ -46,9 +46,9 @@ export function MenuTree({ nodes, fullTree }: MenuTreeProps) {
       return;
     }
 
-    const activeId = Number(active.id);
-    const [zone, targetText] = String(over.id).split(":");
-    const targetId = Number(targetText);
+    // Id menu berupa CUID2 (teks), jadi dipakai apa adanya tanpa diubah ke angka.
+    const activeId = String(active.id);
+    const [zone, targetId] = String(over.id).split(":");
 
     if (targetId === activeId) {
       return;

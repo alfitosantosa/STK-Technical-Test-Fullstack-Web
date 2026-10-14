@@ -1,9 +1,13 @@
 // Tipe data yang dipakai bersama seluruh aplikasi.
 // Bentuknya mengikuti response API Go di backend/model/menu.go.
 
+// Id menu adalah CUID2 yang dibuat backend (24 karakter, huruf kecil dan angka).
+// Frontend memperlakukannya sebagai teks apa adanya — jangan diubah menjadi angka.
+export type MenuId = string;
+
 export type Menu = {
-  id: number;
-  parent_id: number | null;
+  id: MenuId;
+  parent_id: MenuId | null;
   name: string;
   url: string;
   position: number;
@@ -20,12 +24,12 @@ export type MenuNode = Menu & {
 export type MenuPayload = {
   name: string;
   url: string;
-  parent_id: number | null;
+  parent_id: MenuId | null;
   position?: number | null;
 };
 
 // Body untuk PATCH /api/menus/:id/move (drag and drop).
 export type MovePayload = {
-  parent_id: number | null;
+  parent_id: MenuId | null;
   position: number | null;
 };

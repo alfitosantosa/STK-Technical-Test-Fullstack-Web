@@ -86,8 +86,14 @@ Cara menjalankan seluruh aplikasi (frontend + backend + database) lewat Docker a
 
 ```bash
 bun run build
-bun start
+bun start        # untuk mengecek cepat di komputer sendiri
 ```
+
+> `next.config.ts` memakai `output: "standalone"` supaya image Docker kecil
+> (319 MB, bandingkan 1,18 GB untuk mode development). Dengan pengaturan itu cara
+> resmi menjalankan hasil build adalah `node .next/standalone/server.js` setelah
+> menyalin `.next/static` dan `public` — persis yang dilakukan `frontend/Dockerfile`.
+> `bun start` tetap bisa dipakai untuk mengecek cepat, hanya memunculkan peringatan.
 
 ### Pemeriksaan kode
 
@@ -118,6 +124,11 @@ ulang dari data server, nilai itu tidak disimpan di mana pun.
 
 ## Catatan perilaku
 
+- **Dialog "Tambah"** membuat menu baru: nama, URL, dan induknya dipilih di dialog.
+  Panel di kanan hanya untuk melihat dan mengubah menu yang sudah ada.
+- **Id menu berupa CUID2** (teks 24 karakter) yang dibuat backend. Frontend
+  memperlakukannya sebagai teks apa adanya — jangan diubah menjadi angka, karena
+  nilainya bukan bilangan.
 - **Drag and drop** memakai dua area drop per baris: garis tipis di atas baris
   (menyisipkan tepat di atas menu itu) dan badan baris (menjadi submenu dari
   menu itu, urutannya paling akhir). Menu tidak bisa dipindah ke dalam

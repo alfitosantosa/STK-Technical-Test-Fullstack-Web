@@ -8,6 +8,8 @@ import (
 
 	"assesment/model"
 	"assesment/repository"
+
+	"github.com/nrednav/cuid2"
 )
 
 // Error yang dikembalikan service. Layer route yang mengubahnya menjadi status HTTP.
@@ -44,7 +46,7 @@ func (s *MenuService) Tree(ctx context.Context) ([]*model.MenuNode, error) {
 }
 
 // Get mengambil satu menu.
-func (s *MenuService) Get(ctx context.Context, id int64) (*model.Menu, error) {
+func (s *MenuService) Get(ctx context.Context, id string) (*model.Menu, error) {
 	menu, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -75,6 +77,8 @@ func (s *MenuService) Create(ctx context.Context, req model.MenuRequest) (*model
 	}
 
 	menu := &model.Menu{
+		// Id dibuat aplikasi, bukan database, karena kolom id sekarang TEXT (CUID2).
+		ID:       cuid2.Generate(),
 		ParentID: req.ParentID,
 		Name:     req.Name,
 		URL:      req.URL,
@@ -93,7 +97,7 @@ func (s *MenuService) Create(ctx context.Context, req model.MenuRequest) (*model
 // hilang saat user cuma mengedit nama menu.
 // ponytail: posisi yang dikirim langsung dipakai tanpa menggeser menu lain.
 // Penggeseran sibling dikerjakan di endpoint reorder (bagian bonus).
-func (s *MenuService) Update(ctx context.Context, id int64, req model.MenuRequest) (*model.Menu, error) {
+func (s *MenuService) Update(ctx context.Context, id string, req model.MenuRequest) (*model.Menu, error) {
 	menu, err := s.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -125,7 +129,7 @@ func (s *MenuService) Update(ctx context.Context, id int64, req model.MenuReques
 //
 // Seluruh perubahan parent_id dan position sibling di induk lama maupun baru
 // dikerjakan dalam satu transaksi, supaya urutan tidak pernah setengah jadi.
-func (s *MenuService) Move(ctx context.Context, id int64, req model.MoveMenuRequest) (*model.Menu, error) {
+func (s *MenuService) Move(ctx context.Context, id string, req model.MoveMenuRequest) (*model.Menu, error) {
 	menu, err := s.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -225,7 +229,7 @@ func clampIndex(index, n int) int {
 }
 
 // sameParent membandingkan induk dengan memperlakukan nil sebagai NULL.
-func sameParent(a, b *int64) bool {
+func sameParent(a, b *string) bool {
 	if a == nil || b == nil {
 		return a == nil && b == nil
 	}
@@ -234,7 +238,7 @@ func sameParent(a, b *int64) bool {
 }
 
 // Delete menghapus satu menu beserta seluruh submenu di bawahnya.
-func (s *MenuService) Delete(ctx context.Context, id int64) error {
+func (s *MenuService) Delete(ctx context.Context, id string) error {
 	menu, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -247,7 +251,7 @@ func (s *MenuService) Delete(ctx context.Context, id int64) error {
 }
 
 // checkParentExists memastikan menu induk yang dipilih benar-benar ada.
-func (s *MenuService) checkParentExists(ctx context.Context, parentID *int64) error {
+func (s *MenuService) checkParentExists(ctx context.Context, parentID *string) error {
 	if parentID == nil {
 		return nil
 	}
@@ -267,7 +271,7 @@ func (s *MenuService) checkParentExists(ctx context.Context, parentID *int64) er
 //
 // Caranya: telusuri ke atas mulai dari calon induk. Kalau di tengah jalan ketemu
 // id menu yang sedang diedit, berarti calon induk itu ada di bawah menu ini.
-func (s *MenuService) checkParentAvailable(ctx context.Context, id int64, parentID *int64) error {
+func (s *MenuService) checkParentAvailable(ctx context.Context, id string, parentID *string) error {
 	for current := parentID; current != nil; {
 		if *current == id {
 			return ErrInvalidParent
@@ -290,7 +294,7 @@ func (s *MenuService) checkParentAvailable(ctx context.Context, id int64, parent
 // buildTree menyusun daftar menu datar menjadi menu bersarang.
 // Dipisah dari Tree supaya bisa ditest tanpa database.
 func buildTree(menus []model.Menu) []*model.MenuNode {
-	nodes := make(map[int64]*model.MenuNode, len(menus))
+	nodes := make(map[string]*model.MenuNode, len(menus))
 	for _, menu := range menus {
 		// Children diisi slice kosong, bukan nil, supaya JSON-nya [] bukan null.
 		nodes[menu.ID] = &model.MenuNode{Menu: menu, Children: []*model.MenuNode{}}

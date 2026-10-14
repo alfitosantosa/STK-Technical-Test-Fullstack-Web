@@ -4,14 +4,16 @@ import "time"
 
 // Menu adalah satu item menu.
 //
-// Struktur kolomnya ada di database/migrations/0001_create_menus.sql.
+// Struktur kolomnya ada di database/migrations/0002_menus_cuid_id.sql.
 // File migration itu sumber kebenaran schema, jadi kalau struct ini diubah,
 // migration-nya wajib ikut diubah.
 type Menu struct {
-	ID int64 `gorm:"column:id;primaryKey" json:"id"`
+	// ID adalah CUID2 (24 karakter) yang dibuat aplikasi saat Create,
+	// bukan angka yang dihasilkan database.
+	ID string `gorm:"column:id;primaryKey" json:"id"`
 
 	// ParentID bernilai NULL kalau menu ini ada di level paling atas.
-	ParentID *int64 `gorm:"column:parent_id" json:"parent_id"`
+	ParentID *string `gorm:"column:parent_id" json:"parent_id"`
 
 	Name      string    `gorm:"column:name" json:"name"`
 	URL       string    `gorm:"column:url" json:"url"`
@@ -40,10 +42,10 @@ type MenuNode struct {
 //   - Position nil  -> POST menaruh menu di urutan paling akhir,
 //     PUT mempertahankan urutan yang sekarang.
 type MenuRequest struct {
-	Name     string `json:"name" validate:"required,min=3,max=100"`
-	URL      string `json:"url" validate:"omitempty,max=255"`
-	ParentID *int64 `json:"parent_id"`
-	Position *int   `json:"position" validate:"omitempty,gte=0"`
+	Name     string  `json:"name" validate:"required,min=3,max=100"`
+	URL      string  `json:"url" validate:"omitempty,max=255"`
+	ParentID *string `json:"parent_id"`
+	Position *int    `json:"position" validate:"omitempty,gte=0"`
 }
 
 // MoveMenuRequest adalah body request untuk PATCH /api/menus/:id/move.
@@ -52,6 +54,6 @@ type MenuRequest struct {
 // ParentID nil berarti menu dipindah ke level paling atas, Position nil berarti
 // menu ditaruh di urutan paling akhir pada induk tujuan.
 type MoveMenuRequest struct {
-	ParentID *int64 `json:"parent_id"`
-	Position *int   `json:"position" validate:"omitempty,gte=0"`
+	ParentID *string `json:"parent_id"`
+	Position *int    `json:"position" validate:"omitempty,gte=0"`
 }

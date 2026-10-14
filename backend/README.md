@@ -13,6 +13,7 @@ REST API. Dibuat dengan Go + Fiber v3 dan PostgreSQL.
 | Query | GORM (`gorm.io/gorm` + `gorm.io/driver/postgres`) |
 | Validasi | `go-playground/validator` lewat `fiber.Config.StructValidator` |
 | Migration | File SQL di `database/migrations/`, dijalankan otomatis saat server start |
+| ID | [CUID2](https://github.com/nrednav/cuid2) (`github.com/nrednav/cuid2`), dibuat aplikasi saat menu ditambahkan |
 | Dokumentasi API | OpenAPI 3 di `api.docs.yml`, UI Swagger di `/docs` |
 
 ## Struktur folder
@@ -55,7 +56,7 @@ go mod download
 go run .
 ```
 
-Server jalan di `http://localhost:3000`. Dokumentasi API: `http://localhost:3000/docs`.
+Server jalan di `http://localhost:4000`. Dokumentasi API: `http://localhost:4000/docs`.
 
 Cara menjalankan seluruh aplikasi (backend + frontend + database) lewat Docker ada di
 [README root](../README.md#menjalankan-dengan-docker).
@@ -63,7 +64,7 @@ Cara menjalankan seluruh aplikasi (backend + frontend + database) lewat Docker a
 Cek cepat:
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:4000/health
 # {"status":"ok"}
 ```
 
@@ -72,7 +73,7 @@ curl http://localhost:3000/health
 | Nama | Wajib | Nilai default | Keterangan |
 | --- | --- | --- | --- |
 | `DATABASE_URL` | ya | - | Koneksi PostgreSQL, misalnya `postgresql://user:pass@host:5432/db?sslmode=require` |
-| `PORT` | tidak | `3000` | Port HTTP server |
+| `PORT` | tidak | `4000` | Port HTTP server |
 
 Nilai di `.env` hanya dipakai saat development. Di Docker/production, environment
 variable diisi langsung dari luar. File `.env` tidak ikut di-commit (lihat `.gitignore`).
@@ -106,7 +107,7 @@ Body untuk POST dan PUT:
 {
   "name": "Laporan Penjualan",
   "url": "/reports/sales",
-  "parent_id": 1,
+  "parent_id": "nay7nt4s8g4zz81r6d9xp4w8",
   "position": 0
 }
 ```
@@ -117,7 +118,7 @@ Aturan body:
 | --- | --- |
 | `name` | wajib, 3 - 100 karakter |
 | `url` | opsional, maksimal 255 karakter, boleh path relatif atau URL lengkap |
-| `parent_id` | opsional. Kosong atau `null` berarti menu level paling atas |
+| `parent_id` | opsional, berisi id (CUID2) menu induk. Kosong atau `null` berarti menu level paling atas |
 | `position` | opsional, minimal 0. POST tanpa `position` menaruh menu di urutan paling akhir; PUT tanpa `position` mempertahankan urutan yang sekarang |
 
 Semua menu yang dibuat bisa punya submenu, tidak ada batas kedalaman dari sisi API.
@@ -126,7 +127,7 @@ Body untuk PATCH `/api/menus/:id/move` hanya berisi tujuan pemindahan:
 
 ```json
 {
-  "parent_id": 1,
+  "parent_id": "nay7nt4s8g4zz81r6d9xp4w8",
   "position": 0
 }
 ```
@@ -146,17 +147,17 @@ satu level frontend tetap harus mengirim `parent_id` induk yang sekarang.
 
 ```bash
 # menu level atas
-curl -X POST http://localhost:3000/api/menus \
+curl -X POST http://localhost:4000/api/menus \
   -H 'Content-Type: application/json' \
   -d '{"name":"Master Data","url":"/master"}'
 
-# submenu dari menu dengan id 1
-curl -X POST http://localhost:3000/api/menus \
+# submenu dari menu dengan id nay7nt4s8g4zz81r6d9xp4w8
+curl -X POST http://localhost:4000/api/menus \
   -H 'Content-Type: application/json' \
-  -d '{"name":"Kategori","url":"/master/categories","parent_id":1}'
+  -d '{"name":"Kategori","url":"/master/categories","parent_id":"nay7nt4s8g4zz81r6d9xp4w8"}'
 
 # menu bersarang
-curl http://localhost:3000/api/menus/tree
+curl http://localhost:4000/api/menus/tree
 ```
 
 ### Format error
@@ -179,13 +180,13 @@ bisa menandai input yang salah:
 
 | Status | Kapan muncul |
 | --- | --- |
-| 400 | Body tidak valid, `id` bukan angka positif, menu induk tidak ada, atau induk yang dipilih membuat lingkaran |
+| 400 | Body tidak valid, `id` bukan CUID2 yang valid, menu induk tidak ada, atau induk yang dipilih membuat lingkaran |
 | 404 | Menu yang diminta tidak ada |
 | 500 | Kesalahan di server (detail aslinya hanya dicatat di log, tidak dikirim ke klien) |
 
 ## Dokumentasi API
 
-- Swagger UI: `http://localhost:3000/docs`
+- Swagger UI: `http://localhost:4000/docs`
 - File spec OpenAPI 3: `api.docs.yml`
 
 Spec ditulis manual di satu file dan dibundel ke binary saat compile, jadi halaman
@@ -197,8 +198,10 @@ Spec ditulis manual di satu file dan dibundel ke binary saat compile, jadi halam
 go test ./...
 ```
 
-Unit test yang ada menguji penyusunan menu bersarang (`service/menu_service_test.go`)
-tanpa perlu database.
+Unit test yang ada menguji penyusunan menu bersarang, penomoran posisi sibling, dan
+pembentukan id menu (`service/menu_*_test.go`). Test pembentukan id memanggil
+`service.Create`, jadi butuh database; kalau `DATABASE_URL` tidak ada atau database
+tidak bisa dihubungi, test itu di-skip dan sisanya tetap jalan.
 
 ## Data contoh
 
@@ -207,12 +210,12 @@ Ada dua berkas data contoh di `seed/`, dan `seed/push.py` mengirimnya ke API sat
 | Berkas | Isi |
 | --- | --- |
 | `menus.json` | 14 menu contoh aplikasi (Dashboard, Master Data, Transaksi, ...) |
-| `menus-mockup.json` | struktur menu yang dipakai pada mockup desain, berguna untuk demo tampilan |
+| `menus-dari-brief.json` | struktur menu yang dipakai pada mockup desain, berguna untuk demo tampilan |
 
 ```bash
 python3 seed/push.py                                 # menus.json ke http://localhost:8080
 python3 seed/push.py --url http://localhost:4000      # kalau server jalan di port lain
-python3 seed/push.py --file menus-mockup.json         # pakai berkas data yang lain
+python3 seed/push.py --file menus-dari-brief.json       # pakai berkas data yang lain
 ```
 
 Field `parent` diisi **nama** menu induk, bukan id, karena id baru diketahui setelah
@@ -224,6 +227,12 @@ Data ini contoh saja. Kalau ingin mulai dari kosong lagi, hapus menunya lewat
 
 ## Catatan keputusan
 
+- **Id menu adalah CUID2 (string), dibuat aplikasi.** Kolom `id` dan `parent_id`
+  bertipe `TEXT`, dan `service.Create` mengisi `id` dengan `cuid2.Generate()`.
+  Migration `0002_menus_cuid_id.sql` membuat ulang tabel `menus` untuk perubahan ini,
+  jadi menu contoh yang lama terhapus saat migration itu jalan; isi ulang lewat
+  `seed/push.py`. Karena id-nya bukan angka, `:id` yang bukan CUID2 dibalas 400
+  `id menu tidak valid`.
 - **Schema ada di file SQL, bukan AutoMigrate.** GORM dipakai untuk query, sedangkan
   struktur tabel ditentukan file di `database/migrations/`. Jadi struct di `model/`
   wajib disesuaikan kalau migration diubah.

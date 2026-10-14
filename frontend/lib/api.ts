@@ -1,4 +1,4 @@
-import type { Menu, MenuNode, MenuPayload, MovePayload } from "@/lib/types";
+import type { Menu, MenuId, MenuNode, MenuPayload, MovePayload } from "@/lib/types";
 
 // Alamat backend Go. Diisi lewat .env.local, ada nilai cadangan supaya
 // development tetap jalan tanpa konfigurasi tambahan.
@@ -81,17 +81,17 @@ export const menuApi = {
       body: JSON.stringify(payload),
     }),
 
-  update: (id: number, payload: MenuPayload) =>
+  update: (id: MenuId, payload: MenuPayload) =>
     request<Menu>(`/api/menus/${id}`, {
       method: "PUT",
       body: JSON.stringify(payload),
     }),
 
-  remove: (id: number) =>
+  remove: (id: MenuId) =>
     request<void>(`/api/menus/${id}`, { method: "DELETE" }),
 
   // Dipakai drag and drop: pindah induk sekaligus atur urutannya.
-  move: (id: number, payload: MovePayload) =>
+  move: (id: MenuId, payload: MovePayload) =>
     request<Menu>(`/api/menus/${id}/move`, {
       method: "PATCH",
       body: JSON.stringify(payload),

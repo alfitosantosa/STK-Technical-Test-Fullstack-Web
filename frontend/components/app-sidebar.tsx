@@ -1,7 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutGrid, ListTree } from "lucide-react";
+import {
+  BoxesIcon,
+  ChevronsLeftIcon,
+  CircleIcon,
+  CodeIcon,
+  LayoutGridIcon,
+  ListTreeIcon,
+  PlugIcon,
+  SlidersHorizontalIcon,
+  TrophyIcon,
+  UsersIcon,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -18,10 +30,29 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useMenuTree } from "@/lib/queries";
 import type { MenuNode } from "@/lib/types";
 import { useMenuStore } from "@/stores/menu-store";
+
+// Ikon untuk setiap menu di sidebar.
+//
+// Ini murni tampilan: nama menu ditentukan user, jadi ikonnya ditebak dari
+// kata kunci yang umum dan ada ikon cadangan kalau tidak ada yang cocok.
+function ikonMenu(nama: string): LucideIcon {
+  const teks = nama.toLowerCase();
+
+  if (teks.includes("api")) return PlugIcon;
+  if (teks.includes("code")) return CodeIcon;
+  if (teks.includes("system")) return BoxesIcon;
+  if (teks.includes("propert")) return SlidersHorizontalIcon;
+  if (teks.includes("menu")) return ListTreeIcon;
+  if (teks.includes("user") || teks.includes("group")) return UsersIcon;
+  if (teks.includes("compet")) return TrophyIcon;
+
+  return CircleIcon;
+}
 
 // Sidebar aplikasi.
 //
@@ -31,10 +62,11 @@ import { useMenuStore } from "@/stores/menu-store";
 export function AppSidebar() {
   const { data: roots, isPending, error } = useMenuTree();
   const { selectedId, select, setRootId } = useMenuStore();
+  const { toggleSidebar } = useSidebar();
 
   // Memilih menu dari sidebar sekaligus menentukan menu teratas yang
   // ditampilkan di halaman, supaya menu yang dipilih pasti terlihat.
-  const openFromSidebar = (root: MenuNode, node: MenuNode) => {
+  const bukaDariSidebar = (root: MenuNode, node: MenuNode) => {
     setRootId(root.id);
     select(node.id);
   };
@@ -44,11 +76,19 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-3">
           <div className="grid size-8 shrink-0 place-items-center rounded-md bg-sidebar-accent text-sidebar-accent-foreground">
-            <LayoutGrid className="size-4" />
+            <LayoutGridIcon className="size-4" />
           </div>
           <span className="font-heading text-sm font-semibold tracking-wider group-data-[collapsible=icon]:hidden">
             MAKALUX
           </span>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Lipat sidebar"
+            className="ml-auto rounded p-1 text-sidebar-foreground/70 transition-colors hover:text-sidebar-foreground group-data-[collapsible=icon]:hidden"
+          >
+            <ChevronsLeftIcon className="size-4" />
+          </button>
         </div>
       </SidebarHeader>
 
@@ -59,7 +99,7 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton isActive tooltip="Menus" render={<Link href="/" />}>
-                  <ListTree />
+                  <ListTreeIcon />
                   <span>Menus</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -86,33 +126,43 @@ export function AppSidebar() {
 
             {roots && roots.length > 0 && (
               <SidebarMenu>
-                {roots.map((root) => (
-                  <SidebarMenuItem key={root.id}>
-                    <SidebarMenuButton
-                      isActive={selectedId === root.id}
-                      tooltip={root.name}
-                      onClick={() => openFromSidebar(root, root)}
-                    >
-                      <span>{root.name}</span>
-                    </SidebarMenuButton>
+                {roots.map((root) => {
+                  const IkonRoot = ikonMenu(root.name);
 
-                    {root.children.length > 0 && (
-                      <SidebarMenuSub>
-                        {root.children.map((child) => (
-                          <SidebarMenuSubItem key={child.id}>
-                            <SidebarMenuSubButton
-                              isActive={selectedId === child.id}
-                              render={<button type="button" />}
-                              onClick={() => openFromSidebar(root, child)}
-                            >
-                              <span>{child.name}</span>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    )}
-                  </SidebarMenuItem>
-                ))}
+                  return (
+                    <SidebarMenuItem key={root.id}>
+                      <SidebarMenuButton
+                        isActive={selectedId === root.id}
+                        tooltip={root.name}
+                        onClick={() => bukaDariSidebar(root, root)}
+                      >
+                        <IkonRoot />
+                        <span>{root.name}</span>
+                      </SidebarMenuButton>
+
+                      {root.children.length > 0 && (
+                        <SidebarMenuSub>
+                          {root.children.map((child) => {
+                            const IkonAnak = ikonMenu(child.name);
+
+                            return (
+                              <SidebarMenuSubItem key={child.id}>
+                                <SidebarMenuSubButton
+                                  isActive={selectedId === child.id}
+                                  render={<button type="button" />}
+                                  onClick={() => bukaDariSidebar(root, child)}
+                                >
+                                  <IkonAnak />
+                                  <span>{child.name}</span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      )}
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             )}
           </SidebarGroupContent>
