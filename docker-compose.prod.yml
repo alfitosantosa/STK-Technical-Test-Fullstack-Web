@@ -1,0 +1,61 @@
+# Mode production.
+#
+#   docker compose -f docker-compose.prod.yml up --build -d
+#
+# Perbedaannya dengan docker-compose.yml:
+#   - image dibangun dengan multi-stage build (Dockerfile, bukan Dockerfile.dev)
+#   - tidak ada source code yang di-mount, jadi isi container sudah final
+#   - tidak ada hot reload; mengubah kode berarti build ulang image
+#
+# Nilai yang bisa diatur lewat berkas .env di folder ini: POSTGRES_*,
+# DATABASE_URL, dan NEXT_PUBLIC_API_URL (lihat .env.example).
+
+name: menu-management-prod
+
+services:
+  database:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-menu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-menu}
+      POSTGRES_DB: ${POSTGRES_DB:-menu}
+    volumes:
+      # Sejak image PostgreSQL 18, mount dipasang di /var/lib/postgresql.
+      - database-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-menu} -d ${POSTGRES_DB:-menu}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      # Bisa diarahkan ke database lain (misalnya layanan terkelola) lewat .env.
+      DATABASE_URL: ${DATABASE_URL:-postgres://menu:menu@database:5432/menu?sslmode=disable}
+      PORT: "4000"
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Nilai ini ditanam saat build, jadi mengubahnya perlu build ulang.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+
+volumes:
+  database-data:

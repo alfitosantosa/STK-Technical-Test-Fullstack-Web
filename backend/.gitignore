@@ -1,0 +1,8 @@
+# Isi kredensial database, jangan ikut di-commit.
+.env
+
+# Binary hasil `go build`.
+assesment
+
+# Hasil build air saat menjalankan hot reload di Docker.
+tmp/

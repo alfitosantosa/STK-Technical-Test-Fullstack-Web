@@ -1,0 +1,12 @@
+# Berkas yang tidak perlu ikut ke dalam image.
+.git
+.gitignore
+.env
+tmp
+seed
+*.md
+Dockerfile
+Dockerfile.dev
+.dockerignore
+assesment
+server

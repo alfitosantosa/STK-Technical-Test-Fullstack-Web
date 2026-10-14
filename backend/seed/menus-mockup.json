@@ -1,0 +1,28 @@
+[
+  { "name": "system-management", "url": "/system-management" },
+
+  { "name": "Systems", "url": "/systems", "parent": "system-management" },
+  { "name": "System Code", "url": "/systems/code", "parent": "Systems" },
+  { "name": "Code-Registration", "url": "/systems/code/registration", "parent": "Systems" },
+  { "name": "Code-Registration - 2", "url": "/systems/code/registration-2", "parent": "Systems" },
+
+  { "name": "SystemCode", "url": "/system-code", "parent": "system-management" },
+  { "name": "Properties", "url": "/properties", "parent": "system-management" },
+
+  { "name": "Menus", "url": "/menus", "parent": "system-management" },
+  { "name": "Menu-Registration", "url": "/menus/registration", "parent": "Menus" },
+
+  { "name": "APIList", "url": "/api-list", "parent": "system-management" },
+  { "name": "API-Registration", "url": "/api-list/registration", "parent": "APIList" },
+  { "name": "API-Edit", "url": "/api-list/edit", "parent": "APIList" },
+
+  { "name": "Users & Groups", "url": "/users-groups", "parent": "system-management" },
+  { "name": "Users", "url": "/users-groups/users", "parent": "Users & Groups" },
+  { "name": "User-Account-Registration", "url": "/users-groups/users/registration", "parent": "Users" },
+  { "name": "Groups", "url": "/users-groups/groups", "parent": "Users & Groups" },
+  { "name": "User-Group-Registration", "url": "/users-groups/groups/registration", "parent": "Groups" },
+  { "name": "사용자 및 권한", "url": "/users-groups/permissions", "parent": "Users & Groups" },
+  { "name": "사용자 및 권한 관리", "url": "/users-groups/permissions/manage", "parent": "사용자 및 권한" },
+
+  { "name": "Competition", "url": "/competition", "parent": "system-management" }
+]

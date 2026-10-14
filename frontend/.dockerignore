@@ -1,0 +1,12 @@
+# Berkas yang tidak perlu ikut ke dalam image.
+.git
+.gitignore
+.next
+node_modules
+README.md
+Dockerfile
+Dockerfile.dev
+.dockerignore
+.env
+.env.local
+.env.example

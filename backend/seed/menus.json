@@ -1,0 +1,16 @@
+[
+  { "name": "Dashboard", "url": "/dashboard" },
+  { "name": "Master Data", "url": "/master" },
+  { "name": "Kategori", "url": "/master/categories", "parent": "Master Data" },
+  { "name": "Produk", "url": "/master/products", "parent": "Master Data" },
+  { "name": "Satuan", "url": "/master/units", "parent": "Master Data" },
+  { "name": "Makanan", "url": "/master/categories/food", "parent": "Kategori" },
+  { "name": "Minuman", "url": "/master/categories/drink", "parent": "Kategori" },
+  { "name": "Transaksi", "url": "/transactions" },
+  { "name": "Penjualan", "url": "/transactions/sales", "parent": "Transaksi" },
+  { "name": "Pembelian", "url": "/transactions/purchases", "parent": "Transaksi" },
+  { "name": "Laporan", "url": "/reports" },
+  { "name": "Penjualan Harian", "url": "/reports/daily-sales", "parent": "Laporan" },
+  { "name": "Stok", "url": "/reports/stock", "parent": "Laporan" },
+  { "name": "Pengaturan", "url": "/settings" }
+]

@@ -1,0 +1,20 @@
+# Image development untuk backend.
+# Source code di-mount dari komputer, dan air me-restart server setiap kali
+# file .go berubah.
+
+FROM golang:1.27-alpine
+
+WORKDIR /app
+
+# air: tool hot reload untuk Go.
+RUN go install github.com/air-verse/air@latest
+
+# Dependency dipasang lebih dulu supaya start pertama lebih cepat.
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+EXPOSE 4000
+
+CMD ["air", "-c", ".air.toml"]

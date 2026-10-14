@@ -1,0 +1,7 @@
+# Berkas sampah sistem operasi.
+.DS_Store
+
+# Berkas konfigurasi lokal (kredensial). Tiap aplikasi punya contohnya sendiri:
+# backend/.env.example dan frontend/.env.example
+.env
+.env.local

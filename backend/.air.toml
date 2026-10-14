@@ -1,0 +1,22 @@
+# Konfigurasi air (hot reload backend saat development di Docker).
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/server ."
+  bin = "./tmp/server"
+  include_ext = ["go"]
+  exclude_dir = ["tmp", "seed"]
+  # Jeda singkat supaya beberapa perubahan beruntun hanya memicu satu build.
+  delay = 500
+
+  # Bind mount dari macOS tidak selalu meneruskan event perubahan file ke
+  # dalam container, jadi air memeriksa file secara berkala.
+  poll = true
+  poll_interval = 700
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = true

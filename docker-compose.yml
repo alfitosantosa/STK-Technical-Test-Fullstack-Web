@@ -1,0 +1,79 @@
+# Mode development.
+#
+#   docker compose up --build
+#
+# Frontend: http://localhost:3000    Backend: http://localhost:4000
+#
+# Backend dan frontend menjalankan mode development dengan hot reload: folder
+# di komputer di-mount ke dalam container, jadi perubahan berkas langsung
+# terpakai tanpa build ulang image.
+
+name: menu-management
+
+services:
+  database:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-menu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-menu}
+      POSTGRES_DB: ${POSTGRES_DB:-menu}
+    ports:
+      # Port di komputer bisa diubah lewat .env kalau sudah dipakai proses lain.
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      # Data database tetap ada walau container dihapus.
+      # Sejak image PostgreSQL 18, mount dipasang di /var/lib/postgresql
+      # (bukan /var/lib/postgresql/data seperti versi sebelumnya); datanya
+      # ditaruh di subfolder oleh image-nya sendiri.
+      - database-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-menu} -d ${POSTGRES_DB:-menu}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-menu}:${POSTGRES_PASSWORD:-menu}@database:5432/${POSTGRES_DB:-menu}?sslmode=disable
+      PORT: "4000"
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+    volumes:
+      # Source code dari komputer, supaya air bisa me-restart server saat ada perubahan.
+      - ./backend:/app
+      # Dependency dan cache disimpan di volume supaya tidak tertimpa mount
+      # source di atas, dan build berikutnya tidak mengunduh ulang.
+      - go-modules:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    environment:
+      # Dibaca oleh browser, jadi alamatnya dari sudut pandang komputer,
+      # bukan nama service di dalam jaringan Docker.
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      # node_modules disimpan di volume sendiri supaya tidak tertimpa mount source.
+      - frontend-node-modules:/app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  database-data:
+  go-modules:
+  go-build-cache:
+  frontend-node-modules:

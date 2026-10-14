@@ -1,0 +1,393 @@
+openapi: 3.0.3
+info:
+  title: Menu Management API
+  description: |
+    API pengelolaan menu bertingkat (parent - child).
+
+    Struktur menu disimpan pada satu tabel `menus` dengan kolom `parent_id`.
+    `parent_id` bernilai null berarti menu berada di level paling atas.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Development
+tags:
+  - name: Menu
+    description: Pengelolaan menu
+  - name: Health
+    description: Status server
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Cek status server
+      responses:
+        "200":
+          description: Server hidup
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /api/menus:
+    get:
+      tags: [Menu]
+      summary: Ambil semua menu (bentuk datar)
+      description: |
+        Mengembalikan seluruh menu dalam satu daftar datar, diurutkan per level
+        lalu per `position`. Cocok untuk tabel admin.
+      responses:
+        "200":
+          description: Daftar menu
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Menu"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    post:
+      tags: [Menu]
+      summary: Tambah menu baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MenuRequest"
+            examples:
+              menuUtama:
+                summary: Menu level atas
+                value:
+                  name: Dashboard
+                  url: /dashboard
+              submenu:
+                summary: Submenu dari menu dengan id 1
+                value:
+                  name: Laporan Penjualan
+                  url: /reports/sales
+                  parent_id: 1
+      responses:
+        "201":
+          description: Menu berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Menu"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/menus/tree:
+    get:
+      tags: [Menu]
+      summary: Ambil menu dalam bentuk pohon
+      description: |
+        Mengembalikan menu bersarang. Hanya menu level paling atas yang ada di
+        root, submenu masuk ke field `children`.
+        Submenu diurutkan berdasarkan `position`, lalu `id`.
+      responses:
+        "200":
+          description: Menu bersarang
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MenuNode"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/menus/{id}:
+    parameters:
+      - $ref: "#/components/parameters/MenuId"
+
+    get:
+      tags: [Menu]
+      summary: Ambil satu menu
+      responses:
+        "200":
+          description: Data menu
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Menu"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    put:
+      tags: [Menu]
+      summary: Ubah menu
+      description: |
+        Mengganti data menu. Field yang tidak dikirim dianggap kosong
+        (`parent_id` null berarti menu dipindah ke level paling atas).
+
+        `position` hanya diubah kalau dikirim, supaya urutan yang sudah diatur
+        tidak hilang saat user hanya mengedit nama.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MenuRequest"
+            examples:
+              ubahNama:
+                summary: Hanya mengubah nama
+                value:
+                  name: Dashboard Utama
+                  url: /dashboard
+              pindahKeRoot:
+                summary: Pindahkan submenu ke level paling atas
+                value:
+                  name: Laporan Penjualan
+                  url: /reports/sales
+                  parent_id: null
+      responses:
+        "200":
+          description: Menu setelah diubah
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Menu"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    delete:
+      tags: [Menu]
+      summary: Hapus menu
+      description: |
+        Menghapus menu. Seluruh submenu di bawahnya ikut terhapus
+        (foreign key `ON DELETE CASCADE`), jadi frontend perlu menampilkan
+        konfirmasi sebelum memanggil endpoint ini.
+      responses:
+        "204":
+          description: Menu terhapus
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/menus/{id}/move:
+    parameters:
+      - $ref: "#/components/parameters/MenuId"
+
+    patch:
+      tags: [Menu]
+      summary: Pindahkan atau urutkan ulang menu
+      description: |
+        Memindahkan menu ke induk lain sekaligus mengubah urutannya, dipakai
+        frontend untuk drag-and-drop.
+
+        - `parent_id` null atau tidak dikirim berarti menu dipindah ke level
+          paling atas.
+        - `position` null atau tidak dikirim berarti menu ditaruh di urutan
+          paling akhir pada induk tujuan.
+        - `position` 0..n berarti menu disisipkan di index tersebut
+          (0 = paling atas). Nilai di luar jangkauan dijepit ke urutan akhir.
+
+        Posisi seluruh menu yang ikut bergeser dirapatkan kembali 0..n-1 tanpa
+        bolong dan tanpa duplikat, di induk lama maupun induk baru, dalam satu
+        transaksi database. Jadi endpoint ini mencakup dua kebutuhan sekaligus:
+        mengurutkan ulang dalam satu level dan memindahkan antar induk.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoveMenuRequest"
+            examples:
+              pindahKeRoot:
+                summary: Pindah ke level paling atas, di urutan paling akhir
+                value:
+                  parent_id: null
+              pindahKeIndukLain:
+                summary: Pindah jadi submenu id 1, disisipkan di urutan paling atas
+                value:
+                  parent_id: 1
+                  position: 0
+              reorderDalamSatuLevel:
+                summary: Tetap di induk yang sama, naik ke urutan paling atas
+                value:
+                  parent_id: 1
+                  position: 0
+      responses:
+        "200":
+          description: Menu setelah dipindah
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Menu"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+components:
+  parameters:
+    MenuId:
+      name: id
+      in: path
+      required: true
+      description: ID menu
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+  schemas:
+    Menu:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        parent_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: ID menu induk. Null berarti menu level paling atas.
+          example: null
+        name:
+          type: string
+          example: Dashboard
+        url:
+          type: string
+          description: Tujuan menu, boleh path relatif atau URL lengkap.
+          example: /dashboard
+        position:
+          type: integer
+          description: Urutan tampil di antara menu dengan induk yang sama.
+          example: 0
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    MenuNode:
+      allOf:
+        - $ref: "#/components/schemas/Menu"
+        - type: object
+          properties:
+            children:
+              type: array
+              description: Submenu di bawah menu ini. Selalu array, bisa kosong.
+              items:
+                $ref: "#/components/schemas/MenuNode"
+
+    MenuRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: Laporan Penjualan
+        url:
+          type: string
+          maxLength: 255
+          description: Tujuan menu, boleh path relatif atau URL lengkap.
+          example: /reports/sales
+        parent_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: |
+            ID menu induk. Null atau tidak dikirim berarti menu level paling atas.
+        position:
+          type: integer
+          minimum: 0
+          description: |
+            Urutan tampil. Kalau tidak dikirim: POST menaruh menu di urutan
+            paling akhir, PUT mempertahankan urutan yang sekarang.
+
+    MoveMenuRequest:
+      type: object
+      description: |
+        Body untuk memindahkan atau mengurutkan ulang menu. Semua field opsional.
+      properties:
+        parent_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: |
+            ID induk tujuan. Null atau tidak dikirim berarti menu dipindah ke
+            level paling atas. Induk harus ada, dan tidak boleh menu itu sendiri
+            atau submenu di bawahnya (dibalas 400).
+        position:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: |
+            Index sisip pada induk tujuan (0 = paling atas). Null atau tidak
+            dikirim berarti menu ditaruh di urutan paling akhir. Nilai di luar
+            jangkauan dijepit ke urutan akhir.
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: menu tidak ditemukan
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: data yang dikirim tidak valid
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: name
+              rule:
+                type: string
+                example: min
+
+  responses:
+    BadRequest:
+      description: Data yang dikirim tidak valid
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/ValidationError"
+              - $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Menu tidak ditemukan
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ServerError:
+      description: Kesalahan pada server
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
