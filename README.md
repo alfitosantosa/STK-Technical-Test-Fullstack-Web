@@ -42,6 +42,25 @@ Repo ini berisi dua aplikasi:
 
 Prasyarat: Go 1.27+, Bun (atau Node.js 20+), dan database PostgreSQL.
 
+### Satu perintah untuk keduanya
+
+```bash
+./dev.sh
+```
+
+Menyalakan backend dan frontend sekaligus: menunggu backend siap dulu, memberi prefiks
+`[backend]` dan `[frontend]` pada log, dan menghentikan keduanya saat Ctrl+C ditekan.
+Port yang sudah dipakai proses lain dilaporkan beserta nama dan PID prosesnya.
+
+```bash
+PORT=8080 ./dev.sh              # paksa port backend
+FRONTEND_PORT=3001 ./dev.sh     # paksa port frontend
+```
+
+Kalau ingin sekaligus menjalankan database, pakai Docker: `docker compose up --build`.
+
+### Atau dua terminal terpisah
+
 ```bash
 # 1. Backend
 cd backend
